@@ -1,0 +1,24 @@
+{
+  "name": "pwa-rauchmelder-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tobiashld/pwa-rauchmelder-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tobiashld/pwa-rauchmelder-backend/issues"
+  },
+  "homepage": "https://github.com/tobiashld/pwa-rauchmelder-backend#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^2.3.3"
+  }
+}
