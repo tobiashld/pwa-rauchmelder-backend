@@ -1,8 +1,8 @@
 const config = {
     db: {
       host: "martinherhold.bplaced.net",
-      user: "martinherhold",
-      password: "WsidWhmaherh05011971B",
+      user: "martinherhold_2",
+      password: "iguana",
       database: "martinherhold",
     }
   };
