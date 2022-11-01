@@ -1,4 +1,5 @@
 const express = require("express");
+var cors = require('cors')
 const app = express();
 const port = 3000;
 const objekte = require('./services/objekte');
@@ -9,6 +10,7 @@ const rauchmelder = require('./services/rauchmelder')
 const wohnungen = require('./services/wohnungen');
 const { default: functions } = require("./services/auth");
 app.use(express.json());
+app.use(cors())
 app.use(
   express.urlencoded({
     extended: true,

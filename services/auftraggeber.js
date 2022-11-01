@@ -43,6 +43,7 @@ async function createAuftraggeber(request, response){
 async function changeAuftraggeber(request,response,auftraggeberid){
     let auftraggeber = request.body
     const q = `UPDATE public.auftraggeber SET `+mapObjectToParams(auftraggeber)+` WHERE id=${auftraggeberid};`;
+    console.log(q)
     db.query(
       q,
       response
