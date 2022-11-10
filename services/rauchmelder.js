@@ -3,17 +3,18 @@ const helper = require('../helper');
 
 async function getAll(request,response,){
   db.query(
-    `SELECT rauchmelder.id,rauchmelder.raum, rauchmelder.seriennr, rauchmelder.produktionsdatum, rauchmelder."letztePruefungsID", public.wohnungen.nachname as mieter,public.objekte.objekt
+    `SELECT rauchmelder.id,rauchmelder.raum, rauchmelder.seriennr, rauchmelder.produktionsdatum, rauchmelder."letztePruefungsID", public.wohnungen.nachname as mieter,public.objekte.id as objektid,public.objekte.objekt as objektname
     FROM public.rauchmelder
     join public.wohnungen on public.wohnungen.id = public.rauchmelder."wohnungsID" 
     join public.objekte on public.objekte.id = public.rauchmelder."objektID";`,
-    response
+    response,
+    rauchmelderMapping()
   );
   
 }
 async function getAllWithParams(request, response,params){
   const paramsQuery = Object.keys(params).map(key=>`rauchmelder."`+key.toString()+`" =`+(isNaN(params[key])?` '${params[key]}'`:` ${params[key]}`)).join(" AND ");
-  const query = `SELECT rauchmelder.id,rauchmelder.raum, rauchmelder.seriennr, rauchmelder.produktionsdatum, rauchmelder."letztePruefungsID", public.wohnungen.nachname as mieter,public.objekte.objekt
+  const query = `SELECT rauchmelder.id,rauchmelder.raum, rauchmelder.seriennr, rauchmelder.produktionsdatum, rauchmelder."letztePruefungsID", public.wohnungen.nachname as mieter,public.objekte.id as objektid,public.objekte.objekt as objektname
   FROM public.rauchmelder
   join public.wohnungen on public.wohnungen.id = public.rauchmelder."wohnungsID" 
   join public.objekte on public.objekte.id = public.rauchmelder."objektID" WHERE ` +paramsQuery
@@ -57,6 +58,16 @@ function mapObjectToParams(params){
       .map(key=>{
           return (typeof params[key] === "boolean" || typeof params[key] === "number")?`"${key}"=${params[key]}`:`"${key}"='${params[key]}'`
       }).join(",")
+}
+
+
+const rauchmelderMapping = (rows,response)=>{
+  let data = helper.emptyOrRows(rows);
+  if(data.length > 0){
+    data = data.map(rauchmelder=>{
+      
+    })
+  }
 }
 module.exports = {
   getAll,

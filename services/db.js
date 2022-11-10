@@ -21,6 +21,7 @@ async function query(sql, response, cb) {
         throw error;
       }
       response.status(200).json({
+        status:200,
         data: results.rows,
       });
     });
