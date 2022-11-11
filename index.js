@@ -8,6 +8,7 @@ const auth = require('./services/auth')
 const pruefungen = require('./services/pruefungen')
 const rauchmelder = require('./services/rauchmelder')
 const wohnungen = require('./services/wohnungen');
+const statistics = require('./services/statistics')
 const { default: functions } = require("./services/auth");
 app.use(express.json());
 app.use(cors())
@@ -32,6 +33,12 @@ app.post("/signup",(req,res)=>{
 app.post("/changepw",auth.authenticateToken,(req,res)=>{
     auth.changepw(req,res).catch(err=>{
         res.status(401).json({error:"Password ändern fehlgeschlagen",errormessage:err})
+    })
+})
+app.get("/statistics/pruefungen",auth.authenticateToken,(req,res)=>{
+    statistics.getPruefungenStatistics(req,res).catch(err=>{
+        res.status(401).json({error:"Statistische Daten auswerten fehlgeschlagen",errormessage:err})
+        // res.status(401).json(err.message)
     })
 })
 
