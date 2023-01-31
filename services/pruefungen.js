@@ -1,12 +1,24 @@
 const db = require('./db');
+const jwt = require("jsonwebtoken")
 const helper = require('../helper');
 
 async function getAllInklRauchmelder(request, response,){
-  db.query(
-    `SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id;`,
-    response,
-    getAllMapping
-    );
+    let {accessToken,refreshToken} = request.cookies
+    let {username,id} = jwt.decode(refreshToken)
+    if(username !== "admin"){
+        db.query(
+            `SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".id as listenid,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id WHERE pruefungen."userID" = ${id};`,
+            response,
+            getAllMapping
+            );
+    }else{
+        db.query(
+            `SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".id as listenid,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id;`,
+            response,
+            getAllMapping
+            );
+    }
+  
   
 }
 
@@ -35,7 +47,8 @@ function getAllMapping(dataparam,response){
             };
             r[a.pruefungsID].rauchmelder = r[a.pruefungsID].rauchmelder || [];
             r[a.pruefungsID].rauchmelder.push({
-                id:a.rauchmelderID,
+                id:a.listenid,
+                rauchmelderId:a.rauchmelderID,
                 selberRaum:a.selberRaum,
                 baulichUnveraendert: a.baulichUnveraendert,
                 hindernisseUmgebung: a.hindernisseUmgebung,
@@ -73,14 +86,15 @@ async function getAllWithParams(request, response,params){
 }
 
 async function createPruefung(request, response){
-        
+        const {accessToken,refreshToken} = request.cookies
         let pruefung = request.body
+        let user = jwt.decode(refreshToken)
         let timestamp = new Date()
         let client = await db.pool.connect()
         try{
             await client.query('BEGIN')
 
-            const query = `INSERT INTO public.pruefungen("objektID", "userID", "timestamp") VALUES(`+pruefung.objektid+','+pruefung.userid+`,'`
+            const query = `INSERT INTO public.pruefungen("objektID", "userID", "timestamp") VALUES(`+pruefung.objektid+','+user.id+`,'`
             +timestamp.getHours()+':'+timestamp.getMinutes()+':'+timestamp.getSeconds()+' '+timestamp.getDate()+'.'+timestamp.getMonth()+'.'+timestamp.getFullYear()
             +`') RETURNING id;`;
 
@@ -110,6 +124,7 @@ async function createPruefung(request, response){
 
             await client.query('COMMIT')
             response.status(200).json({
+                status:200,
                 data:"Pruefung erfolgreich hinzugefügt"
             })
 

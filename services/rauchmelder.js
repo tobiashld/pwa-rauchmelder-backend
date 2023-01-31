@@ -3,7 +3,7 @@ const helper = require('../helper');
 
 async function getAll(request,response,){
   db.query(
-    `SELECT rauchmelder.id,rauchmelder.raum, rauchmelder.seriennr, rauchmelder.produktionsdatum, rauchmelder."letztePruefungsID", public.wohnungen.nachname as mieter,public.objekte.id as objektid,public.objekte.objekt as objektname
+    `SELECT rauchmelder.id,rauchmelder."wohnungsID",rauchmelder.raum, rauchmelder.seriennr, rauchmelder.produktionsdatum, rauchmelder."letztePruefungsID", public.wohnungen.nachname as mieter,public.objekte.id as objektid,public.objekte.objekt as objektname
     FROM public.rauchmelder
     join public.wohnungen on public.wohnungen.id = public.rauchmelder."wohnungsID" 
     join public.objekte on public.objekte.id = public.rauchmelder."objektID";`,
@@ -14,7 +14,7 @@ async function getAll(request,response,){
 }
 async function getAllWithParams(request, response,params){
   const paramsQuery = Object.keys(params).map(key=>`rauchmelder."`+key.toString()+`" =`+(isNaN(params[key])?` '${params[key]}'`:` ${params[key]}`)).join(" AND ");
-  const query = `SELECT rauchmelder.id,rauchmelder.raum, rauchmelder.seriennr, rauchmelder.produktionsdatum, rauchmelder."letztePruefungsID", public.wohnungen.nachname as mieter,public.objekte.id as objektid,public.objekte.objekt as objektname
+  const query = `SELECT rauchmelder.id,rauchmelder."wohnungsID",rauchmelder.raum, rauchmelder.seriennr, rauchmelder.produktionsdatum, rauchmelder."letztePruefungsID", public.wohnungen.nachname as mieter,public.objekte.id as objektid,public.objekte.objekt as objektname
   FROM public.rauchmelder
   join public.wohnungen on public.wohnungen.id = public.rauchmelder."wohnungsID" 
   join public.objekte on public.objekte.id = public.rauchmelder."objektID" WHERE ` +paramsQuery

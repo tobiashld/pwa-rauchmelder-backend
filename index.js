@@ -1,7 +1,8 @@
 const express = require("express");
 var cors = require('cors')
+var cookie = require('cookie-parser')
 const app = express();
-const port = 3000;
+const port = 3200;
 const objekte = require('./services/objekte');
 const auftraggeber = require('./services/auftraggeber')
 const auth = require('./services/auth')
@@ -10,13 +11,31 @@ const rauchmelder = require('./services/rauchmelder')
 const wohnungen = require('./services/wohnungen');
 const statistics = require('./services/statistics')
 const { default: functions } = require("./services/auth");
+const cookieParser = require("cookie-parser");
+
+
+
 app.use(express.json());
-app.use(cors())
+
+var whitelist = ['http://localhost:3001','http://127.0.0.1:3001','https://tobiashld.github.io' /** other domains if any */ ]
+var corsOptions = {
+  credentials: true,
+  origin: function(origin, callback) {
+    callback(null,true)
+    // if (whitelist.indexOf(origin) !== -1) {
+    //   callback(null, true)
+    // } else {
+    //   callback(new Error('Not allowed by CORS'))
+    // }
+  }
+}
+app.use(cors(corsOptions))
 app.use(
   express.urlencoded({
     extended: true,
   })
 );
+app.use(cookieParser())
 app.get("/", (req, res) => {
   res.json({ message: "ok" });
 });
@@ -40,6 +59,15 @@ app.get("/statistics/pruefungen",auth.authenticateToken,(req,res)=>{
         res.status(401).json({error:"Statistische Daten auswerten fehlgeschlagen",errormessage:err})
         // res.status(401).json(err.message)
     })
+})
+app.post("/refreshtoken",(req,res)=>{
+    auth.handleRefreshToken(req,res)
+    // .catch(err=>{
+    //     res.status(401).json({error:"Session erneuern fehlgeschlagen",errormessage:err})
+    // })
+})
+app.get("/user",auth.authenticateToken,(req,res)=>{
+    auth.getOwnUser(req,res)
 })
 
 
