@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model auftraggeber {
+  id         Int       @unique(map: "auftraggeber_un") @default(autoincrement())
+  name       String    @db.VarChar(50)
+  strasse     String    @map("straße") @db.VarChar(50)
+  hausnummer Int
+  plz        String    @db.VarChar(5)
+  ort        String    @db.VarChar(50)
+  telefon    String    @db.VarChar(20)
+  email      String    @db.VarChar(50)
+  objekte    objekte[]
+}
+
+model objekte {
+  id             Int           @unique(map: "objekte_un") @default(autoincrement())
+  objekt         String        @db.VarChar(20)
+  beschreibung   String        @db.VarChar(150)
+  auftraggeberID Int
+  strasse         String        @map("straße") @db.VarChar(50)
+  hausnummer     Int
+  plz            Int
+  ort            String        @db.VarChar(25)
+  auftraggeber   auftraggeber  @relation(fields: [auftraggeberID], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "objekte_fk")
+  pruefungen     pruefungen[]
+  rauchmelder    rauchmelder[]
+  wohnungen      wohnungen[]
+}
+
+model pruefungen {
+  id              Int               @unique(map: "pruefungen_un") @default(autoincrement())
+  objektID        Int?
+  userID          Int
+  timestamp       String            @db.VarChar(20)
+  objekte         objekte?          @relation(fields: [objektID], references: [id], onUpdate: NoAction, map: "pruefungen_fk")
+  users           users             @relation(fields: [userID], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "pruefungen_fk_1")
+  pruefungenListe pruefungenListe[]
+}
+
+model pruefungenListe {
+  id                     Int         @default(autoincrement())
+  rauchmelderID          Int
+  selberRaum             Boolean
+  baulichUnveraendert    Boolean
+  hindernisseUmgebung    Boolean
+  relevanteBeschaedigung Boolean
+  oeffnungenFrei         Boolean
+  warnmelderGereinigt    Boolean
+  pruefungErfolgreich    Boolean
+  batterieGut            Boolean
+  timestamp              String      @db.VarChar(50)
+  pruefungsID            Int
+  grund                  Int
+  anmerkungen            String      @db.VarChar(100)
+  anmerkungenZwei        String      @db.VarChar(100)
+  pruefungen             pruefungen  @relation(fields: [pruefungsID], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pruefungenliste_fk")
+  rauchmelder            rauchmelder @relation(fields: [rauchmelderID], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pruefungenliste_fk_1")
+
+  @@unique([anmerkungenZwei, id], map: "pruefungenliste_un")
+}
+
+model rauchmelder {
+  id                Int               @unique(map: "rauchmelder_un") @default(autoincrement())
+  objektID          Int
+  qrNummer          Int?
+  raum              String            @db.VarChar(150)
+  seriennr          String            @db.VarChar(10)
+  produktionsdatum  String            @db.VarChar(20)
+  letztePruefungsID Int
+  wohnungsID        Int
+  pruefungenListe   pruefungenListe[]
+  wohnungen         wohnungen         @relation(fields: [wohnungsID], references: [id], onDelete: Cascade, map: "rauchmelder_fk_1")
+  objekte           objekte           @relation(fields: [objektID], references: [id], onDelete: Cascade, map: "rauchmelder_fk_2")
+}
+
+model users {
+  user_id    Int          @id @default(autoincrement())
+  username   String       @db.VarChar(50)
+  password   String       @db.VarChar(256)
+  admin      Boolean?
+  salt       String?      @db.VarChar
+  email      String?      @db.VarChar
+  pruefungen pruefungen[]
+}
+
+model wohnungen {
+  id           Int           @unique(map: "wohnungen_un") @default(autoincrement())
+  objektID     Int
+  etage        String        @db.VarChar(20)
+  wohnungslage String        @db.VarChar(20)
+  haus         String        @db.VarChar(20)
+  vorname      String        @db.VarChar(50)
+  nachname     String        @db.VarChar(50)
+  rauchmelder  rauchmelder[]
+  objekte      objekte       @relation(fields: [objektID], references: [id], onDelete: Cascade, map: "wohnungen_fk")
+}

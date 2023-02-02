@@ -1,4 +1,8 @@
 const Pool = require("pg").Pool;
+const PrismaClient = require("@prisma/client").PrismaClient
+
+const prisma = new PrismaClient()
+
 const pool = new Pool({
   user: "postgres",
   host: "199.247.20.90",
@@ -88,5 +92,6 @@ async function transaction(transactionalSql, response, cb) {
 module.exports = {
   query,
   transaction,
-  pool
+  pool,
+  prisma
 };
