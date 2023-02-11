@@ -1,5 +1,5 @@
   
-  function emptyOrRows(rows) {
+  function emptyOrRows(rows:any) {
     if (!rows) {
       return [];
     }

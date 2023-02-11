@@ -1,7 +1,7 @@
-const db = require('./db');
+import db from './db';
 const helper = require('../helper');
 
-async function getAll(request, response,){
+async function getAll(request: any, response: any,){
   db.query(
     `SELECT * FROM public.wohnungen;`,
     response,
@@ -10,7 +10,7 @@ async function getAll(request, response,){
 }
 
 
-async function getAllWithParam(request, response,key,value){
+async function getAllWithParam(request: any, response: any,key: string,value: string){
     
     const query = 'SELECT * FROM public.wohnungen WHERE '+key+' = '+value
     db.query(
@@ -19,7 +19,7 @@ async function getAllWithParam(request, response,key,value){
     );
 }
 
-async function getAllWithParams(request, response,params){
+async function getAllWithParams(request: any, response: any,params: { [x: string]: any; }){
     const paramsQuery = Object.keys(params).map(key=>`wohnungen."`+key.toString()+`" =`+(Number.isNaN(params[key])?` '${params[key]}'`:` ${params[key]}`)).join(" AND ");
     const query = 'SELECT * FROM public.wohnungen WHERE ' +paramsQuery
     db.query(
@@ -28,7 +28,7 @@ async function getAllWithParams(request, response,params){
     );
 }
 
-async function createWohnung(request, response){
+async function createWohnung(request: { body: any; }, response: any){
         
         let wohnung = request.body
         
@@ -40,7 +40,7 @@ async function createWohnung(request, response){
 
 }
 
-async function changeWohnung(request,response,wohnungsid){
+async function changeWohnung(request:any,response: any,wohnungsid: any){
     let wohnung = request.body
     const q = `UPDATE public.wohnungen SET `+mapObjectToParams(wohnung)+` WHERE id=${wohnungsid};`;
     db.query(
@@ -50,11 +50,11 @@ async function changeWohnung(request,response,wohnungsid){
 
 
 }
-async function deleteWohnung(request,response,wohnungsid){
+async function deleteWohnung(request: any,response: any,wohnungsid: string){
     const q = "DELETE FROM public.wohnungen WHERE id="+wohnungsid+";"
     db.query(q,response)
 }
-function mapObjectToParams(params){
+function mapObjectToParams(params: { [x: string]: any; }){
     return Object.keys(params)
         .filter((value)=>{
             return (value === "id")?false:true;
@@ -64,7 +64,7 @@ function mapObjectToParams(params){
         }).join(",")
 }
 
-module.exports = {
+export default{
   getAll,
   getAllWithParams,
   getAllWithParam,

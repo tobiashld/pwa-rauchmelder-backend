@@ -1,15 +1,19 @@
-const db = require("./db");
-const helper = require("../helper");
+import db from './db';
 
-async function getAll(request, response) {
+
+const alleFunctions = {
+  getAll,
+  getAllWithParams,
+  createObjekt,
+  deleteObjekt,
+  changeObjekt,
+}
+async function getAll(request: any, response: any) {
   db.query(`SELECT * FROM objekte`, response);
 }
-async function getAllWithParam(request, response, key, value) {
-  const query = 'SELECT * FROM public.objekte WHERE "' + key + '" = ' + value;
-  db.query(query, response);
-}
 
-async function getAllWithParams(request, response, params) {
+
+async function getAllWithParams(request: any, response: any, params: { [x: string]: any; }) {
   const paramsQuery = Object.keys(params)
     .map(
       (key) =>
@@ -23,14 +27,14 @@ async function getAllWithParams(request, response, params) {
   console.log(query);
   db.query(query, response);
 }
-async function createObjekt(request, response) {
+async function createObjekt(request: { body: any; }, response: any) {
   var objekt = request.body;
 
   const query = `INSERT INTO public.objekte("objekt", "beschreibung", "auftraggeberID","straße","hausnummer","plz","ort") VALUES('${objekt.objekt}', '${objekt.beschreibung}',${objekt.auftraggeberID},'${objekt.straße}',${objekt.hausnummer},${objekt.plz},'${objekt.ort}');`;
   db.query(query, response);
 }
 
-async function changeObjekt(request, response, objektid) {
+async function changeObjekt(request: { body: any; }, response: any, objektid: any) {
   var objekt = request.body;
   const q =
     `UPDATE public.objekte SET ` +
@@ -39,12 +43,12 @@ async function changeObjekt(request, response, objektid) {
   db.query(q, response);
 }
 
-async function deleteObjekt(request, response, objektid) {
+async function deleteObjekt(request: any, response: any, objektid: string) {
   const q = "DELETE FROM public.objekte WHERE id=" + objektid + ";";
   db.query(q, response);
 }
 
-function mapObjectToParams(params) {
+function mapObjectToParams(params: { [x: string]: any; }) {
   return Object.keys(params)
     .filter((value) => {
       return value === "id" ? false : true;
@@ -57,11 +61,4 @@ function mapObjectToParams(params) {
     .join(",");
 }
 
-module.exports = {
-  getAll,
-  getAllWithParams,
-  getAllWithParam,
-  createObjekt,
-  deleteObjekt,
-  changeObjekt,
-};
+export default alleFunctions

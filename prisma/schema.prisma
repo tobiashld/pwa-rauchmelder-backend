@@ -20,17 +20,16 @@ model auftraggeber {
 }
 
 model objekte {
-  id             Int           @unique(map: "objekte_un") @default(autoincrement())
-  objekt         String        @db.VarChar(20)
-  beschreibung   String        @db.VarChar(150)
+  id             Int          @unique(map: "objekte_un") @default(autoincrement())
+  objekt         String       @db.VarChar(20)
+  beschreibung   String       @db.VarChar(150)
   auftraggeberID Int
-  strasse         String        @map("straße") @db.VarChar(50)
+  strasse         String       @map("straße") @db.VarChar(50)
   hausnummer     Int
   plz            Int
-  ort            String        @db.VarChar(25)
-  auftraggeber   auftraggeber  @relation(fields: [auftraggeberID], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "objekte_fk")
+  ort            String       @db.VarChar(25)
+  auftraggeber   auftraggeber @relation(fields: [auftraggeberID], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "objekte_fk")
   pruefungen     pruefungen[]
-  rauchmelder    rauchmelder[]
   wohnungen      wohnungen[]
 }
 
@@ -39,13 +38,13 @@ model pruefungen {
   objektID        Int?
   userID          Int
   timestamp       String            @db.VarChar(20)
-  objekte         objekte?          @relation(fields: [objektID], references: [id], onUpdate: NoAction, map: "pruefungen_fk")
-  users           users             @relation(fields: [userID], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "pruefungen_fk_1")
-  pruefungenListe pruefungenListe[]
+  objekt         objekte?          @relation(fields: [objektID], references: [id], onUpdate: NoAction, map: "pruefungen_fk")
+  user           users             @relation(fields: [userID], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "pruefungen_fk_1")
+  pruefungensDetails pruefungenListe[]
 }
 
 model pruefungenListe {
-  id                     Int         @default(autoincrement())
+  id                     Int                 @default(autoincrement())
   rauchmelderID          Int
   selberRaum             Boolean
   baulichUnveraendert    Boolean
@@ -55,29 +54,38 @@ model pruefungenListe {
   warnmelderGereinigt    Boolean
   pruefungErfolgreich    Boolean
   batterieGut            Boolean
-  timestamp              String      @db.VarChar(50)
+  timestamp              String              @db.VarChar(50)
   pruefungsID            Int
   grund                  Int
-  anmerkungen            String      @db.VarChar(100)
-  anmerkungenZwei        String      @db.VarChar(100)
-  pruefungen             pruefungen  @relation(fields: [pruefungsID], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pruefungenliste_fk")
-  rauchmelder            rauchmelder @relation(fields: [rauchmelderID], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pruefungenliste_fk_1")
+  anmerkungen            String              @db.VarChar(100)
+  anmerkungenZwei        String              @db.VarChar(100)
+  pruefungen             pruefungen          @relation(fields: [pruefungsID], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pruefungenliste_fk")
+  rauchmelderhistorie    rauchmelderhistorie @relation(fields: [rauchmelderID], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pruefungenliste_fk1")
 
   @@unique([anmerkungenZwei, id], map: "pruefungenliste_un")
 }
 
 model rauchmelder {
-  id                Int               @unique(map: "rauchmelder_un") @default(autoincrement())
-  objektID          Int
-  qrNummer          Int?
-  raum              String            @db.VarChar(150)
-  seriennr          String            @db.VarChar(10)
-  produktionsdatum  String            @db.VarChar(20)
-  letztePruefungsID Int
-  wohnungsID        Int
-  pruefungenListe   pruefungenListe[]
-  wohnungen         wohnungen         @relation(fields: [wohnungsID], references: [id], onDelete: Cascade, map: "rauchmelder_fk_1")
-  objekte           objekte           @relation(fields: [objektID], references: [id], onDelete: Cascade, map: "rauchmelder_fk_2")
+  id                                                                       Int                   @unique(map: "rauchmelder_un") @default(autoincrement())
+  aktuelleHistorienID                                                      Int?
+  wohnungsID                                                               Int
+  aktuellerRauchmelder rauchmelderhistorie?  @relation("rauchmelder_aktuelleHistorienIDTorauchmelderhistorie", fields: [aktuelleHistorienID], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "rauchmelder_fk")
+  wohnungen                                                                wohnungen             @relation(fields: [wohnungsID], references: [id], onDelete: Cascade, map: "rauchmelder_fk_1")
+  rauchmelderHistorie  rauchmelderhistorie[] @relation("rauchmelderhistorie_rauchmelderbzTorauchmelder")
+}
+
+model rauchmelderhistorie {
+  id                                                               Int               @id(map: "rauchmelderhistorie_pk") @default(autoincrement())
+  rauchmelderbz                                                    Int
+  raum                                                             String            @db.VarChar(150)
+  seriennr                                                         String            @db.VarChar(10)
+  produktionsdatum                                                 DateTime          @db.Date
+  installedAt                                                      DateTime?         @db.Date
+  outOfOrderAt                                                     DateTime?         @db.Date
+  isactive                                                         Boolean?          @default(false)
+  pruefungen                                                  pruefungenListe[]
+  rauchmelderHistorie rauchmelder[]     @relation("rauchmelder_aktuelleHistorienIDTorauchmelderhistorie")
+  rauchmelder       rauchmelder       @relation("rauchmelderhistorie_rauchmelderbzTorauchmelder", fields: [rauchmelderbz], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "rauchmelderhistorie_fk")
 }
 
 model users {
@@ -99,5 +107,5 @@ model wohnungen {
   vorname      String        @db.VarChar(50)
   nachname     String        @db.VarChar(50)
   rauchmelder  rauchmelder[]
-  objekte      objekte       @relation(fields: [objektID], references: [id], onDelete: Cascade, map: "wohnungen_fk")
+  objekt      objekte       @relation(fields: [objektID], references: [id], onDelete: Cascade, map: "wohnungen_fk")
 }

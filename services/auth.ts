@@ -1,4 +1,4 @@
-const db = require('./db');
+import db from './db';
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const bcrypt = require("bcrypt")
@@ -8,31 +8,34 @@ const {jwtDecode} = require('jwt-decode')
 dotenv.config();
 
 
-async function login(req,res){
+
+
+async function login(req: { body: { username: any; password: any; }; },res: any){
     const {username,password} = req.body
-    db.query(`SELECT * FROM users WHERE username='${username}'`,res,(row,response)=>validateLogin(row,req,response))
+    
+    db.query(`SELECT * FROM users WHERE username='${username}'`,res,(row: any,response: any)=>validateLogin(row,req,response))
 
 }
-async function signup(req,res){
+async function signup(req: { body: { username: any; password: any; }; },res: any){
     const {username,password} = req.body
     let hashedPassword = await bcrypt.hash(password, 10);
     db.query(`INSERT INTO public.users ("username", "password", "admin","salt") VALUES ('${username}', '${hashedPassword}', false,'10');`,res)
 }
-async function changepw(req,res){
+async function changepw(req: { body: { password: any; }; headers: { [x: string]: any; }; },res: any){
     const {password} = req.body
     let hashedPassword = await bcrypt.hash(password, 10);
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
     let payload = parseJwt(token)
-    query = `UPDATE public.users SET password='${hashedPassword}' WHERE user_id=${payload.id};`
+    let query = `UPDATE public.users SET password='${hashedPassword}' WHERE user_id=${payload.id};`
     db.query(query,res)
 }
 
-function parseJwt (token) {
+function parseJwt (token: string) {
     return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
 }
 
-function getOwnUser(req,res){
+function getOwnUser(req: { cookies: { accessToken: any; refreshToken: any; }; },res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { status: number; data?: any; error?: string; }): void; new(): any; }; }; }){
     const {accessToken,refreshToken} = req.cookies
     
     if(refreshToken){
@@ -44,10 +47,11 @@ function getOwnUser(req,res){
 
 }
 
-function validateLogin(rows,request,response){
+function validateLogin(rows: string | any[],request: { body: { username: any; password: any; }; },response: { status: (arg0: number) => { (): any; new(): any; cookie: { (arg0: string, arg1: any, arg2: { expires: Date; httpOnly: boolean; sameSite: string; secure: boolean; }): { (): any; new(): any; cookie: { (arg0: string, arg1: any, arg2: { expires: Date; httpOnly: boolean; sameSite: string; secure: boolean; }): { (): any; new(): any; json: { (arg0: { status: number; token: any; }): void; new(): any; }; }; new(): any; }; }; new(): any; }; json: { (arg0: { error: string; }): void; new(): any; }; }; }){
     const {username,password} = request.body
+    console.log(username,"username",password,"password")
     if(rows && rows.length > 0 ){
-        bcrypt.compare(password,rows[0].password).then(isSame=>{
+        bcrypt.compare(password,rows[0].password).then((isSame: any)=>{
             if(isSame){
                 let newAccessToken = generateAccessToken({username:rows[0].username,id:rows[0].user_id})
                 response
@@ -77,13 +81,13 @@ function validateLogin(rows,request,response){
 }
 
 
-function authenticateToken(req, res, next) {
+function authenticateToken(req:any, res:any, next: any) {
   
   const {accessToken,refreshToken} = req.cookies
 
   
 
-  jwt.verify(accessToken?accessToken:"", process.env.TOKEN_SECRET , (err, user) => {
+  jwt.verify(accessToken?accessToken:"", process.env.TOKEN_SECRET , (err: any, user: any) => {
 
     if (err) {
         if (refreshToken == null) return res.status(200).json({status:469,error:"Beide Token abgelaufen!"})
@@ -102,11 +106,11 @@ function authenticateToken(req, res, next) {
   })
 }
 
-async function handleRefreshToken(req, res) {
+async function handleRefreshToken(req: { cookies: { accessToken: any; refreshToken: any; }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { status: number; error: string; }): void; new(): any; }; cookie: { (arg0: string, arg1: any, arg2: { expires: Date; httpOnly: boolean; }): { (): any; new(): any; json: { (arg0: { status: number; token: any; }): void; new(): any; }; }; new(): any; }; }; }) {
     const {accessToken,refreshToken} = req.cookies
     
     if (refreshToken == null) return res.status(200).json({status:400,error:"Session abgelaufen"})
-    jwt.verify(refreshToken, process.env.TOKEN_SECRET , (err, payload) => {
+    jwt.verify(refreshToken, process.env.TOKEN_SECRET , (err: any, payload: { username: any; id: any; exp: number; }) => {
       if (err) {
         res.status(200).json({status:400,error:"Session abgelaufen"})
       }else{
@@ -127,15 +131,14 @@ async function handleRefreshToken(req, res) {
 
 
 
-function generateAccessToken(data) {
+function generateAccessToken(data: { username: any; id: any; }) {
     return jwt.sign(data, process.env.TOKEN_SECRET, { expiresIn: 60*60 });
 }
-function generateRefreshToken(data) {
+function generateRefreshToken(data: { username: any; id: any; }) {
     return jwt.sign(data, process.env.TOKEN_SECRET, { expiresIn: 172800 });
 }
 
-  
-module.exports = {
+let thisExport = {
     login,
     signup,
     authenticateToken,
@@ -144,3 +147,4 @@ module.exports = {
     handleRefreshToken,
     changepw
 }
+export default thisExport

@@ -52,13 +52,22 @@ CREATE TABLE "pruefungenListe" (
 -- CreateTable
 CREATE TABLE "rauchmelder" (
     "id" SERIAL NOT NULL,
-    "objektID" INTEGER NOT NULL,
-    "qrNummer" INTEGER,
+    "aktuelleHistorienID" INTEGER,
+    "wohnungsID" INTEGER NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "rauchmelderhistorie" (
+    "id" SERIAL NOT NULL,
+    "rauchmelderbz" INTEGER NOT NULL,
     "raum" VARCHAR(150) NOT NULL,
     "seriennr" VARCHAR(10) NOT NULL,
-    "produktionsdatum" VARCHAR(20) NOT NULL,
-    "letztePruefungsID" INTEGER NOT NULL,
-    "wohnungsID" INTEGER NOT NULL
+    "produktionsdatum" DATE NOT NULL,
+    "installedAt" DATE,
+    "outOfOrderAt" DATE,
+    "isactive" BOOLEAN DEFAULT false,
+
+    CONSTRAINT "rauchmelderhistorie_pk" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -115,13 +124,16 @@ ALTER TABLE "pruefungen" ADD CONSTRAINT "pruefungen_fk_1" FOREIGN KEY ("userID")
 ALTER TABLE "pruefungenListe" ADD CONSTRAINT "pruefungenliste_fk" FOREIGN KEY ("pruefungsID") REFERENCES "pruefungen"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "pruefungenListe" ADD CONSTRAINT "pruefungenliste_fk_1" FOREIGN KEY ("rauchmelderID") REFERENCES "rauchmelder"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE "pruefungenListe" ADD CONSTRAINT "pruefungenliste_fk1" FOREIGN KEY ("rauchmelderID") REFERENCES "rauchmelderhistorie"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "rauchmelder" ADD CONSTRAINT "rauchmelder_fk" FOREIGN KEY ("aktuelleHistorienID") REFERENCES "rauchmelderhistorie"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "rauchmelder" ADD CONSTRAINT "rauchmelder_fk_1" FOREIGN KEY ("wohnungsID") REFERENCES "wohnungen"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "rauchmelder" ADD CONSTRAINT "rauchmelder_fk_2" FOREIGN KEY ("objektID") REFERENCES "objekte"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "rauchmelderhistorie" ADD CONSTRAINT "rauchmelderhistorie_fk" FOREIGN KEY ("rauchmelderbz") REFERENCES "rauchmelder"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "wohnungen" ADD CONSTRAINT "wohnungen_fk" FOREIGN KEY ("objektID") REFERENCES "objekte"("id") ON DELETE CASCADE ON UPDATE CASCADE;
