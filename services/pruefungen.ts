@@ -12,6 +12,7 @@ async function getAllInklRauchmelder(request:any, response: any,){
             getAllMapping
             );
     }else{
+        
         db.query(
             `SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".id as listenid,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id;`,
             response,

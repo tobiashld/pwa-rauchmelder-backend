@@ -1,7 +1,10 @@
+import { Wohnung } from "./wohnung"
+
 export interface RauchmelderBeziehung{
     id:number,
     aktuelleHistorienID:number,
     wohnungsID:number,
+    wohnung?:Wohnung,
     aktuellerRauchmelder:Rauchmelder
 }
 

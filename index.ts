@@ -175,8 +175,14 @@ app.get("/rauchmelder", auth.authenticateToken, async (req: { query: {}; }, res:
   }
 });
 app.post("/rauchmelder/switch/create",async (req:{body:{newRauchmelder:Rauchmelder,altRauchmelderBz:RauchmelderBeziehung}},res)=>{
-  console.log("test")
   rauchmelder.switchAndCreateRauchmelder(req,res)
+})
+app.get("/rauchmelder/objekt/:id",async (req,res)=>{
+  rauchmelder.getAllWithObjectId(req,res,Number.parseInt(req.params.id)).catch((err) => {
+    res
+      .status(200)
+      .json({ status:406,error: "Verändern des Rauchmelders fehlgeschlagen" });
+  });
 })
 
 app.get("/rauchmelder/variant/:variante", auth.authenticateToken, async (req , res) => {
@@ -188,6 +194,15 @@ app.get("/rauchmelder/variant/:variante", auth.authenticateToken, async (req , r
   });
    
 });
+
+app.get("/rauchmelder/history/:variante",auth.authenticateToken,(req,res)=>{
+  var rauchmelderhistorienid = req.params.variante;
+  rauchmelder.getHistory(req,res,Number.parseInt(rauchmelderhistorienid)).catch((err) => {
+    res
+      .status(200)
+      .json({ status:406,error: "Verändern des Rauchmelders fehlgeschlagen" });
+  });
+})
 
 app.put("/rauchmelder/:id", auth.authenticateToken, async (req, res) => {
   var rauchmelderid = req.params.id;

@@ -4,12 +4,10 @@ import db from './db';
 const helper = require('../helper');
 
 async function getAll(request:any,response:any,){
-
-  
-
   db.prisma.rauchmelder.findMany({
     include:{
-      aktuellerRauchmelder:true
+      aktuellerRauchmelder:true,
+      wohnungen:true
     },
     orderBy:{
       id:"asc"
@@ -49,6 +47,26 @@ function getActiveWithHistoryId(request:any,response:any,historyId:number){
     });
   })
 }
+async function getAllWithObjectId(request:any,response:any,objektId:number){
+  db.prisma.rauchmelder.findMany({
+    where:{
+      wohnungen:{
+        objektID:objektId
+      }
+    },
+    include:{
+      aktuellerRauchmelder:true
+    },
+    orderBy:{
+      aktuelleHistorienID:"asc"
+    }
+  }).then(data=>{
+    response.status(200).json({
+      status:200,
+      data: data,
+    });
+  })
+}
 
 
 async function getAllWithParams(request:any, response:any,params:any){
@@ -64,24 +82,49 @@ async function getAllWithParams(request:any, response:any,params:any){
 }
 
 async function createRauchmelder(request:any, response:any){
+  db.prisma.rauchmelder.create({
+    include:{
+      aktuellerRauchmelder:true
+    },
+    data:{
+      ...request.body
+    }
+  }).then(data=>{
+    response.status(200).json({
+      status:200,
+      data: data,
+    });
+  })
+      // let rauchmelder = request.body
       
-      let rauchmelder = request.body
-      
-      const query = `INSERT INTO public.rauchmelder("objektID", raum, seriennr, produktionsdatum, "letztePruefungsID", "wohnungsID") VALUES(${rauchmelder.objektID}, '${rauchmelder.raum}','${rauchmelder.seriennr}','${rauchmelder.produktionsdatum}',0,'${rauchmelder.wohnungsID}');`;
-      db.query(
-        query,
-        response
-      )
+      // const query = `INSERT INTO public.rauchmelder("objektID", raum, seriennr, produktionsdatum, "letztePruefungsID", "wohnungsID") VALUES(${rauchmelder.objektID}, '${rauchmelder.raum}','${rauchmelder.seriennr}','${rauchmelder.produktionsdatum}',0,'${rauchmelder.wohnungsID}');`;
+      // db.query(
+      //   query,
+      //   response
+      // )
 
 }
 
 async function changeRauchmelder(request:any,response:any,rauchmelderid:any){
-  let rauchmelder = request.body
-  const q = `UPDATE public.rauchmelder SET `+mapObjectToParams(rauchmelder)+` WHERE id=${rauchmelderid};`;
-  db.query(
-    q,
-    response
-    )
+  db.prisma.rauchmelderhistorie.update({
+    data:{
+      ...request.body
+    },
+    where:{
+      id:rauchmelderid
+    }
+  }).then(data=>{
+    response.status(200).json({
+      status:200,
+      data: data,
+    });
+  })
+  // let rauchmelder = request.body
+  // const q = `UPDATE public.rauchmelder SET `+mapObjectToParams(rauchmelder)+` WHERE id=${rauchmelderid};`;
+  // db.query(
+  //   q,
+  //   response
+  //   )
 
 
 }
@@ -101,30 +144,65 @@ async function getWithHistoryId(request:any,response:any,rauchmelderhistorienid:
   })
 }
 
+async function getHistory(request:any,response:any,rauchmelderhistorienid:number){
+  db.prisma.rauchmelderhistorie.findMany({
+    select:{
+      rauchmelder:{
+        select:{
+          rauchmelderHistorie:true,
+          wohnungen:{
+            select:{
+              nachname:true,
+              vorname:true,
+              etage:true,
+              wohnungslage:true,
+              haus:true,
+              objektID:true,
+            }
+          }
+        }
+      }
+    },
+    where:{
+      id:rauchmelderhistorienid
+    },
+    
+    
+  }).then(data=>{
+    response.status(200).json({
+      status:200,
+      data:data
+    })
+  })
+}
+
 async function switchAndCreateRauchmelder(request:any,response:any){
 
 
 
 
-  let newRauchmelder : Rauchmelder = {
-    produktionsdatum:new Date(2001,10,10),
-    seriennr:'101010101',
-    raum:'penis',
-    isactive:true
-  }
-  let altRauchmelderBz : RauchmelderBeziehung= {
-    id:951,
-    aktuelleHistorienID:951,
-    wohnungsID:295,
-    aktuellerRauchmelder:{
-      raum:'Flur',
-      produktionsdatum:new Date(2001,10,10),
-      seriennr:'101010101',
-      isactive:true
-    }
-  }
-  // let newRauchmelder : Rauchmelder = request.body.newRauchmelder
-  // let altRauchmelderBz : RauchmelderBeziehung= request.body.altRauchmelderBz
+  // let newRauchmelder : Rauchmelder = {
+  //   produktionsdatum:new Date(2001,10,10),
+  //   seriennr:'101010101',
+  //   raum:'penis',
+  //   isactive:true
+  // }
+  // let altRauchmelderBz : RauchmelderBeziehung= {
+  //   id:951,
+  //   aktuelleHistorienID:954,
+  //   wohnungsID:295,
+  //   aktuellerRauchmelder:{
+  //     id:954,
+  //     raum:'Flur',
+  //     produktionsdatum:new Date(2001,10,10),
+  //     seriennr:'101010101',
+  //     isactive:true
+  //   }
+  // }
+  let newRauchmelder : Rauchmelder = request.body.newRauchmelder
+  let altRauchmelderBz : RauchmelderBeziehung= request.body.altRauchmelderBz
+  console.log("new",newRauchmelder)
+  console.log("old",altRauchmelderBz)
 
   db.prisma.rauchmelderhistorie.create({
     data:{
@@ -145,18 +223,31 @@ async function switchAndCreateRauchmelder(request:any,response:any){
       rauchmelder:true
     }
   }).then(value=>{
+    console.log(altRauchmelderBz.aktuellerRauchmelder.id)
     db.prisma.rauchmelderhistorie.update({
+      
+      data:{
+        isactive:false,
+        outOfOrderAt:new Date()
+      },
       where:{
         id:altRauchmelderBz.aktuellerRauchmelder.id
       },
-      data:{
-        isactive:false
-      }
     }).then(test=>{
-      response.status(200).json({
-        status:200,
-        data: value,
-      });
+      db.prisma.rauchmelder.update({
+        data:{
+          aktuelleHistorienID:value.id
+        },
+        where:{
+          id:altRauchmelderBz.id
+        }
+      }).then(test=>{
+        response.status(200).json({
+          status:200,
+          data: value,
+        });
+      })
+      
     })
     
   }).catch(e=>{
@@ -225,7 +316,9 @@ const rauchmelderMapping = (rows:any,response:any)=>{
   }
 }
 export default {
+  getAllWithObjectId,
   getAll,
+  getHistory,
   getAllWithParams,
   getActiveWithHistoryId,
   switchAndCreateRauchmelder,
