@@ -2,11 +2,16 @@ import db from './db';
 const helper = require('../helper');
 
 async function getAll(request: any, response: any,){
-  db.query(
-    `SELECT * FROM public.wohnungen;`,
-    response,
-    );
-  
+    db.prisma.wohnungen.findMany({
+        orderBy:{
+          id:"asc"
+        }
+      }).then(data=>{
+        response.status(200).json({
+          status:200,
+          data: data,
+        });
+      })
 }
 
 

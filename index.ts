@@ -178,6 +178,7 @@ app.post("/rauchmelder/switch/create",async (req:{body:{newRauchmelder:Rauchmeld
   rauchmelder.switchAndCreateRauchmelder(req,res)
 })
 app.get("/rauchmelder/objekt/:id",async (req,res)=>{
+  console.log(req.params)
   rauchmelder.getAllWithObjectId(req,res,Number.parseInt(req.params.id)).catch((err) => {
     res
       .status(200)

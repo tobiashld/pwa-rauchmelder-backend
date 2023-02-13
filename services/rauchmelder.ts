@@ -51,7 +51,9 @@ async function getAllWithObjectId(request:any,response:any,objektId:number){
   db.prisma.rauchmelder.findMany({
     where:{
       wohnungen:{
-        objektID:objektId
+        objektID:{
+          equals:objektId
+        }
       }
     },
     include:{
