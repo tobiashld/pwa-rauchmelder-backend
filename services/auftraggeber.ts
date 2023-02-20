@@ -1,7 +1,9 @@
-const db = require('./db');
+import db from './db';
 const helper = require('../helper');
 
-async function getAll(request, response,){
+
+
+function getAll(request: any, response: any,){
   db.query(
     `SELECT * FROM public.auftraggeber;`,
     response,
@@ -10,7 +12,7 @@ async function getAll(request, response,){
 }
 
 
-async function getAllWithParam(request, response,key,value){
+function getAllWithParam(request: any, response: any,key: string,value: string){
     
     const query = 'SELECT * FROM public.auftraggeber WHERE '+key+' = '+value
     db.query(
@@ -19,7 +21,7 @@ async function getAllWithParam(request, response,key,value){
     );
 }
 
-async function getAllWithParams(request, response,params){
+ function getAllWithParams(request: any, response: any,params: { [x: string]: any; }){
     const paramsQuery = Object.keys(params).map(key=>`auftraggeber."`+key.toString()+`" =`+(Number.isNaN(params[key])?` '${params[key]}'`:` ${params[key]}`)).join(" AND ");
     const query = 'SELECT * FROM public.auftraggeber WHERE ' +paramsQuery
     db.query(
@@ -28,7 +30,7 @@ async function getAllWithParams(request, response,params){
     );
 }
 
-async function createAuftraggeber(request, response){
+ function createAuftraggeber(request: { body: any; }, response: any){
         
         let auftraggeber = request.body
         
@@ -40,7 +42,7 @@ async function createAuftraggeber(request, response){
 
 }
 
-async function changeAuftraggeber(request,response,auftraggeberid){
+ function changeAuftraggeber(request: { body: any; },response: any,auftraggeberid: any){
     let auftraggeber = request.body
     const q = `UPDATE public.auftraggeber SET `+mapObjectToParams(auftraggeber)+` WHERE id=${auftraggeberid};`;
     console.log(q)
@@ -51,11 +53,11 @@ async function changeAuftraggeber(request,response,auftraggeberid){
 
 
 }
-async function deleteAuftraggeber(request,response,auftraggeberid){
+ function deleteAuftraggeber(request: any,response: any,auftraggeberid: string){
     const q = "DELETE FROM public.auftraggeber WHERE id="+auftraggeberid+";"
     db.query(q,response)
 }
-function mapObjectToParams(params){
+function mapObjectToParams(params: { [x: string]: any; }){
     return Object.keys(params)
         .filter((value)=>{
             return (value === "id")?false:true;
@@ -65,11 +67,11 @@ function mapObjectToParams(params){
         }).join(",")
 }
 
-module.exports = {
-  getAll,
-  getAllWithParams,
-  getAllWithParam,
-  createAuftraggeber,
-  changeAuftraggeber,
-  deleteAuftraggeber
-}
+const exportFunctions = {
+    getAll,
+    getAllWithParams,
+    getAllWithParam,
+    createAuftraggeber,
+    changeAuftraggeber,
+    deleteAuftraggeber}
+export default exportFunctions

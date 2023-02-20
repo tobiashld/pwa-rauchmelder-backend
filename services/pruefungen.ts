@@ -1,8 +1,8 @@
-const db = require('./db');
+import db from './db';
 const jwt = require("jsonwebtoken")
 const helper = require('../helper');
 
-async function getAllInklRauchmelder(request, response,){
+async function getAllInklRauchmelder(request:any, response: any,){
     let {accessToken,refreshToken} = request.cookies
     let {username,id} = jwt.decode(refreshToken)
     if(username !== "admin"){
@@ -12,6 +12,7 @@ async function getAllInklRauchmelder(request, response,){
             getAllMapping
             );
     }else{
+        
         db.query(
             `SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".id as listenid,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id;`,
             response,
@@ -22,11 +23,11 @@ async function getAllInklRauchmelder(request, response,){
   
 }
 
-function getAllMapping(dataparam,response){
+function getAllMapping(dataparam: any,response: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { data: any[]; }): void; new(): any; }; }; }){
     let data = helper.emptyOrRows(dataparam);
     if(data.length > 0){
         // mapping auf das gewünschte format
-        data = data.reduce(function (r, a) {
+        data = data.reduce(function (r: { [x: string]: { rauchmelder: { id: any; rauchmelderId: any; selberRaum: any; baulichUnveraendert: any; hindernisseUmgebung: any; relevanteBeschaedigung: any; oeffnungenFrei: any; warnmelderGereinigt: any; pruefungErfolgreich: any; batterieGut: any; grund: any; anmerkungen: any; anmerkungenZwei: any; }[]; }; }, a: { pruefungsID: string | number; pruefungszeit: any; userID: any; username: any; objektID: any; objekt: any; beschreibung: any; straße: any; hausnummer: any; plz: any; ort: any; listenid: any; rauchmelderID: any; selberRaum: any; baulichUnveraendert: any; hindernisseUmgebung: any; relevanteBeschaedigung: any; oeffnungenFrei: any; warnmelderGereinigt: any; pruefungErfolgreich: any; batterieGut: any; grund: any; anmerkungen: any; anmerkungenZwei: any; }) {
             r[a.pruefungsID] = r[a.pruefungsID] || {
                 id:a.pruefungsID,
                 timestamp:a.pruefungszeit,
@@ -66,7 +67,7 @@ function getAllMapping(dataparam,response){
     }
   response.status(200).json({data:Object.keys(data).map(key=>data[key])})
 }
-async function getAllWithParam(request, response,key,value){
+async function getAllWithParam(request: any, response: any,key: string,value: string){
     
     const query = 'SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id WHERE '+key+' = '+value
     db.query(
@@ -75,7 +76,7 @@ async function getAllWithParam(request, response,key,value){
     );
 }
 
-async function getAllWithParams(request, response,params){
+async function getAllWithParams(request: any, response: any,params: { [x: string]: any; }){
     const paramsQuery = Object.keys(params).map(key=>`pruefungen."`+key.toString()+`" =`+(Number.isNaN(params[key])?` '${params[key]}'`:` ${params[key]}`)).join(" AND ");
     const query = 'SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id WHERE ' +paramsQuery
     db.query(
@@ -85,7 +86,7 @@ async function getAllWithParams(request, response,params){
     );
 }
 
-async function createPruefung(request, response){
+async function createPruefung(request: any, response:any){
         const {accessToken,refreshToken} = request.cookies
         let pruefung = request.body
         let user = jwt.decode(refreshToken)
@@ -98,7 +99,7 @@ async function createPruefung(request, response){
             +timestamp.getHours()+':'+timestamp.getMinutes()+':'+timestamp.getSeconds()+' '+timestamp.getDate()+'.'+timestamp.getMonth()+'.'+timestamp.getFullYear()
             +`') RETURNING id;`;
 
-            res = await client.query(query)
+            let res = await client.query(query)
 
 
             for(let geprRauchmelder of pruefung.rauchmelder){
@@ -137,14 +138,14 @@ async function createPruefung(request, response){
 
 }
 
-async function changePruefung(request,response,pruefungsid){
+async function changePruefung(request: any,response: any,pruefungsid: any){
     let pruefung = request.body
     let client = await db.pool.connect()
     try{
         await client.query('BEGIN')
 
         const q = `UPDATE public.pruefungen SET `+mapObjectToParams(pruefung)+` WHERE id=${pruefungsid};`;
-        res = await client.query(q)
+        let res = await client.query(q)
 
         if(pruefung.rauchmelder){
             for(let geprRauchmelder of pruefung.rauchmelder){
@@ -165,11 +166,11 @@ async function changePruefung(request,response,pruefungsid){
         client.release()
     }
 }
-async function deletePruefung(request,response,pruefungsid){
+async function deletePruefung(request: any,response: any,pruefungsid: string){
     const q = "DELETE FROM public.pruefungen WHERE id="+pruefungsid+";"
     db.query(q,response)
 }
-function mapObjectToParams(params){
+function mapObjectToParams(params: { [x: string]: any; }){
     return Object.keys(params)
         .filter((value)=>{
             return (value === "id" || value === "rauchmelder")?false:true;
@@ -179,7 +180,7 @@ function mapObjectToParams(params){
         }).join(",")
 }
 
-module.exports = {
+export default{
   getAllInklRauchmelder,
   getAllWithParams,
   getAllWithParam,
