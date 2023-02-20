@@ -48,6 +48,28 @@ function getActiveWithHistoryId(request:any,response:any,historyId:number){
   })
 }
 async function getAllWithObjectId(request:any,response:any,objektId:number){
+  // db.prisma.rauchmelderhistorie.findMany({
+  //   where:{
+  //     rauchmelder:{
+  //       wohnungen:{
+  //         objektID:{
+  //           equals:objektId
+  //         }
+  //       }
+  //     }
+  //   },
+  //   include:{
+  //     rauchmelder:{
+  //       include:{
+  //         wohnungen:{
+  //           include:{objekt:true}
+  //         }
+  //       }
+  //     }
+  //   },
+  //   orderBy:{id:"asc"}
+  // })
+
   db.prisma.rauchmelder.findMany({
     where:{
       wohnungen:{
@@ -57,7 +79,12 @@ async function getAllWithObjectId(request:any,response:any,objektId:number){
       }
     },
     include:{
-      aktuellerRauchmelder:true
+      aktuellerRauchmelder:true,
+      wohnungen:{
+        include:{
+          objekt:true
+        }
+      }
     },
     orderBy:{
       aktuelleHistorienID:"asc"
@@ -216,7 +243,7 @@ async function switchAndCreateRauchmelder(request:any,response:any){
       outOfOrderAt:null,
       rauchmelder:{
         connect:{
-          id:altRauchmelderBz.id
+          id:altRauchmelderBz.id,
         }
       },
 
