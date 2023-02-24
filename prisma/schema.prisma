@@ -19,6 +19,29 @@ model auftraggeber {
   objekte    objekte[]
 }
 
+model chats {
+  id             String           @id(map: "chats_pk") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  chatteilnehmer chatteilnehmer[]
+  nachrichten    nachrichten[]
+}
+
+model chatteilnehmer {
+  chatid String @db.Uuid
+  userid Int
+  id     String @id(map: "chatteilnehmer_pk") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user  users  @relation(fields: [userid], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "chatteilnehmer_fk")
+  chat  chats  @relation(fields: [chatid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "chatteilnehmer_fk_1")
+}
+
+model nachrichten {
+  id        String @id(map: "nachrichten_pk") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  chatid    String @db.Uuid
+  nachricht String @db.VarChar
+  userid    Int
+  user     users  @relation(fields: [userid], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "nachrichten_fk")
+  chat     chats  @relation(fields: [chatid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "nachrichten_fk_1")
+}
+
 model objekte {
   id             Int          @unique(map: "objekte_un") @default(autoincrement())
   objekt         String       @db.VarChar(20)
@@ -38,9 +61,9 @@ model pruefungen {
   objektID        Int?
   userID          Int
   timestamp       String            @db.VarChar(20)
-  objekt         objekte?          @relation(fields: [objektID], references: [id], onUpdate: NoAction, map: "pruefungen_fk")
-  user           users             @relation(fields: [userID], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "pruefungen_fk_1")
-  pruefungensDetails pruefungenListe[]
+  objekte         objekte?          @relation(fields: [objektID], references: [id], onUpdate: NoAction, map: "pruefungen_fk")
+  users           users             @relation(fields: [userID], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "pruefungen_fk_1")
+  pruefungenListe pruefungenListe[]
 }
 
 model pruefungenListe {
@@ -71,7 +94,7 @@ model rauchmelder {
   wohnungsID                                                               Int
   aktuellerRauchmelder rauchmelderhistorie?  @relation("rauchmelder_aktuelleHistorienIDTorauchmelderhistorie", fields: [aktuelleHistorienID], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "rauchmelder_fk")
   wohnungen                                                                wohnungen             @relation(fields: [wohnungsID], references: [id], onDelete: Cascade, map: "rauchmelder_fk_1")
-  rauchmelderHistorie  rauchmelderhistorie[] @relation("rauchmelderhistorie_rauchmelderbzTorauchmelder")
+  rauchmelderhistorie       rauchmelderhistorie[] @relation("rauchmelderhistorie_rauchmelderbzTorauchmelder")
 }
 
 model rauchmelderhistorie {
@@ -83,19 +106,26 @@ model rauchmelderhistorie {
   installedAt                                                      DateTime?         @db.Date
   outOfOrderAt                                                     DateTime?         @db.Date
   isactive                                                         Boolean?          @default(false)
-  pruefungen                                                  pruefungenListe[]
-  rauchmelderHistorie rauchmelder[]     @relation("rauchmelder_aktuelleHistorienIDTorauchmelderhistorie")
+  pruefungenListe                                                  pruefungenListe[]
+  rauchmelderAnzeigen rauchmelder[]     @relation("rauchmelder_aktuelleHistorienIDTorauchmelderhistorie")
   rauchmelder       rauchmelder       @relation("rauchmelderhistorie_rauchmelderbzTorauchmelder", fields: [rauchmelderbz], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "rauchmelderhistorie_fk")
 }
 
+model user_role {
+  id    String  @id(map: "user_role_pk") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  admin Boolean @default(false)
+}
+
 model users {
-  user_id    Int          @id @default(autoincrement())
-  username   String       @db.VarChar(50)
-  password   String       @db.VarChar(256)
-  admin      Boolean?
-  salt       String?      @db.VarChar
-  email      String?      @db.VarChar
-  pruefungen pruefungen[]
+  user_id        Int              @id @default(autoincrement())
+  username       String           @db.VarChar(50)
+  password       String           @db.VarChar(256)
+  admin          Boolean?
+  salt           String?          @db.VarChar
+  email          String?          @db.VarChar
+  chatteilnehmer chatteilnehmer[]
+  nachrichten    nachrichten[]
+  pruefungen     pruefungen[]
 }
 
 model wohnungen {
@@ -107,5 +137,5 @@ model wohnungen {
   vorname      String        @db.VarChar(50)
   nachname     String        @db.VarChar(50)
   rauchmelder  rauchmelder[]
-  objekt      objekte       @relation(fields: [objektID], references: [id], onDelete: Cascade, map: "wohnungen_fk")
+  objekte      objekte       @relation(fields: [objektID], references: [id], onDelete: Cascade, map: "wohnungen_fk")
 }

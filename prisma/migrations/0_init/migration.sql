@@ -11,6 +11,32 @@ CREATE TABLE "auftraggeber" (
 );
 
 -- CreateTable
+CREATE TABLE "chats" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+
+    CONSTRAINT "chats_pk" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "chatteilnehmer" (
+    "chatid" UUID NOT NULL,
+    "userid" INTEGER NOT NULL,
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+
+    CONSTRAINT "chatteilnehmer_pk" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "nachrichten" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "chatid" UUID NOT NULL,
+    "nachricht" VARCHAR NOT NULL,
+    "userid" INTEGER NOT NULL,
+
+    CONSTRAINT "nachrichten_pk" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "objekte" (
     "id" SERIAL NOT NULL,
     "objekt" VARCHAR(20) NOT NULL,
@@ -71,6 +97,14 @@ CREATE TABLE "rauchmelderhistorie" (
 );
 
 -- CreateTable
+CREATE TABLE "user_role" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "admin" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "user_role_pk" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "users" (
     "user_id" SERIAL NOT NULL,
     "username" VARCHAR(50) NOT NULL,
@@ -110,6 +144,18 @@ CREATE UNIQUE INDEX "rauchmelder_un" ON "rauchmelder"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "wohnungen_un" ON "wohnungen"("id");
+
+-- AddForeignKey
+ALTER TABLE "chatteilnehmer" ADD CONSTRAINT "chatteilnehmer_fk" FOREIGN KEY ("userid") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "chatteilnehmer" ADD CONSTRAINT "chatteilnehmer_fk_1" FOREIGN KEY ("chatid") REFERENCES "chats"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "nachrichten" ADD CONSTRAINT "nachrichten_fk" FOREIGN KEY ("userid") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "nachrichten" ADD CONSTRAINT "nachrichten_fk_1" FOREIGN KEY ("chatid") REFERENCES "chats"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "objekte" ADD CONSTRAINT "objekte_fk" FOREIGN KEY ("auftraggeberID") REFERENCES "auftraggeber"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

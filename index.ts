@@ -1,5 +1,6 @@
 const express = require("express");
 var cors = require("cors");
+
 var cookie = require("cookie-parser");
 import { Express,Request,Response } from "express";
 const port = 3200;
@@ -12,10 +13,21 @@ import wohnungen from "./services/wohnungen";
 import statistics from "./services/statistics";
 import { Rauchmelder, RauchmelderBeziehung } from "./types/rauchmelder";
 const cookieParser = require("cookie-parser");
+import expressWs from 'express-ws'
+import { randomUUID } from "crypto";
+import chat from "./services/chat";
 
 
-const app: Express = express()
+const {app,getWss,applyTo} = expressWs(express(),undefined,{
+  wsOptions:{
+    verifyClient:(info,cb)=>{
+      auth.authenticateTokenWs(info.req,cb)
+    }
+  }
+})
+// var expressWs = require('express-ws')(app);
 app.use(express.json());
+
 
 var whitelist = [
   "http://localhost:3000",
@@ -43,6 +55,20 @@ app.use(cookieParser());
 app.get("/", (req: any, res: { json: (arg0: { message: string; }) => void; }) => {
   res.json({ message: "ok" });
 });
+
+app.ws('/chat/:chatid',function(ws,req){
+  console.log("test")
+  chat.onConnection(ws,req)
+  ws.on('open',function(connection:WebSocket){
+    chat.onConnection(ws,req,connection)
+  })
+  ws.on('message',function(connection:WebSocket){
+
+  })
+  ws.on('close',function(connection:WebSocket){
+    chat.onClose(ws,req,connection)
+  })
+})
 app.post("/login", (req,res) => {
   auth.login(req, res).catch((err: any) => {
     res.status(401).json({ error: "Login fehlgeschlagen",msg:err });

@@ -19,6 +19,20 @@ async function getAllInklRauchmelder(request:any, response: any,){
             getAllMapping
             );
     }
+    // if(id===1){
+    //     db.prisma.pruefungen.findMany({
+    //         where:{
+    //             userID:id
+    //         },
+    //         include:{
+    //             pruefungensDetails:{
+    //                 include:{
+    //                     rauchmelderhistorie:true
+    //                 }
+    //             }
+    //         }
+    //     })
+    // }
   
   
 }
