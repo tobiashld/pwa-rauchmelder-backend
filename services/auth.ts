@@ -79,6 +79,29 @@ function validateLogin(rows: string | any[],request: { body: { username: any; pa
     }
     
 }
+function authenticateTokenWs(req:any,cb:any){
+    const {accessToken,refreshToken} = req.cookies
+
+  
+
+  jwt.verify(accessToken?accessToken:"", process.env.TOKEN_SECRET , (err: any, user: any) => {
+
+    if (err) {
+        if (refreshToken == null) {
+            cb(false,401,'Unauthorized');
+            return
+        }else{
+            let payload = jwt.decode(refreshToken)
+            let newAccessToken = generateAccessToken({username:payload.username,id:payload.id})
+        }
+        
+    }
+
+    req.user = user
+
+    cb(true)
+  })
+}
 
 
 function authenticateToken(req:any, res:any, next: any) {
