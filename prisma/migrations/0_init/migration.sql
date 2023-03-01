@@ -20,7 +20,7 @@ CREATE TABLE "chats" (
 -- CreateTable
 CREATE TABLE "chatteilnehmer" (
     "chatid" UUID NOT NULL,
-    "userid" INTEGER NOT NULL,
+    "userid" UUID NOT NULL,
     "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
 
     CONSTRAINT "chatteilnehmer_pk" PRIMARY KEY ("id")
@@ -31,7 +31,7 @@ CREATE TABLE "nachrichten" (
     "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
     "chatid" UUID NOT NULL,
     "nachricht" VARCHAR NOT NULL,
-    "userid" INTEGER NOT NULL,
+    "userid" UUID NOT NULL,
 
     CONSTRAINT "nachrichten_pk" PRIMARY KEY ("id")
 );
@@ -52,7 +52,7 @@ CREATE TABLE "objekte" (
 CREATE TABLE "pruefungen" (
     "id" SERIAL NOT NULL,
     "objektID" INTEGER,
-    "userID" INTEGER NOT NULL,
+    "userID" UUID NOT NULL,
     "timestamp" VARCHAR(20) NOT NULL
 );
 
@@ -106,14 +106,14 @@ CREATE TABLE "user_role" (
 
 -- CreateTable
 CREATE TABLE "users" (
-    "user_id" SERIAL NOT NULL,
     "username" VARCHAR(50) NOT NULL,
     "password" VARCHAR(256) NOT NULL,
-    "admin" BOOLEAN,
+    "admin" BOOLEAN NOT NULL DEFAULT false,
     "salt" VARCHAR,
     "email" VARCHAR,
+    "user_id" UUID NOT NULL DEFAULT uuid_generate_v4(),
 
-    CONSTRAINT "users_pkey" PRIMARY KEY ("user_id")
+    CONSTRAINT "users_pk" PRIMARY KEY ("user_id")
 );
 
 -- CreateTable
@@ -161,10 +161,10 @@ ALTER TABLE "nachrichten" ADD CONSTRAINT "nachrichten_fk_1" FOREIGN KEY ("chatid
 ALTER TABLE "objekte" ADD CONSTRAINT "objekte_fk" FOREIGN KEY ("auftraggeberID") REFERENCES "auftraggeber"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "pruefungen" ADD CONSTRAINT "pruefungen_fk" FOREIGN KEY ("objektID") REFERENCES "objekte"("id") ON DELETE SET NULL ON UPDATE NO ACTION;
+ALTER TABLE "pruefungen" ADD CONSTRAINT "pruefungen_fk" FOREIGN KEY ("objektID") REFERENCES "objekte"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "pruefungen" ADD CONSTRAINT "pruefungen_fk_1" FOREIGN KEY ("userID") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE "pruefungen" ADD CONSTRAINT "pruefungen_fk1" FOREIGN KEY ("userID") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "pruefungenListe" ADD CONSTRAINT "pruefungenliste_fk" FOREIGN KEY ("pruefungsID") REFERENCES "pruefungen"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

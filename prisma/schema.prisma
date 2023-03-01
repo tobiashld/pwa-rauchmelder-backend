@@ -27,7 +27,7 @@ model chats {
 
 model chatteilnehmer {
   chatid String @db.Uuid
-  userid Int
+  userid String @db.Uuid
   id     String @id(map: "chatteilnehmer_pk") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   user  users  @relation(fields: [userid], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "chatteilnehmer_fk")
   chat  chats  @relation(fields: [chatid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "chatteilnehmer_fk_1")
@@ -37,7 +37,7 @@ model nachrichten {
   id        String @id(map: "nachrichten_pk") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   chatid    String @db.Uuid
   nachricht String @db.VarChar
-  userid    Int
+  userid    String @db.Uuid
   user     users  @relation(fields: [userid], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "nachrichten_fk")
   chat     chats  @relation(fields: [chatid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "nachrichten_fk_1")
 }
@@ -59,10 +59,10 @@ model objekte {
 model pruefungen {
   id              Int               @unique(map: "pruefungen_un") @default(autoincrement())
   objektID        Int?
-  userID          Int
+  userID          String            @db.Uuid
   timestamp       String            @db.VarChar(20)
-  objekte         objekte?          @relation(fields: [objektID], references: [id], onUpdate: NoAction, map: "pruefungen_fk")
-  users           users             @relation(fields: [userID], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "pruefungen_fk_1")
+  objekt         objekte?          @relation(fields: [objektID], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pruefungen_fk")
+  user           users             @relation(fields: [userID], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "pruefungen_fk1")
   pruefungenListe pruefungenListe[]
 }
 
@@ -117,12 +117,12 @@ model user_role {
 }
 
 model users {
-  user_id        Int              @id @default(autoincrement())
   username       String           @db.VarChar(50)
   password       String           @db.VarChar(256)
-  admin          Boolean?
+  admin          Boolean          @default(false)
   salt           String?          @db.VarChar
   email          String?          @db.VarChar
+  user_id        String           @id(map: "users_pk") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   chatteilnehmer chatteilnehmer[]
   nachrichten    nachrichten[]
   pruefungen     pruefungen[]

@@ -20,9 +20,9 @@ import chat from "./services/chat";
 
 const {app,getWss,applyTo} = expressWs(express(),undefined,{
   wsOptions:{
-    verifyClient:(info,cb)=>{
-      auth.authenticateTokenWs(info.req,cb)
-    }
+    // verifyClient:(info,cb)=>{
+    //   auth.authenticateTokenWs(info.req,cb)
+    // }
   }
 })
 // var expressWs = require('express-ws')(app);
@@ -56,24 +56,48 @@ app.get("/", (req: any, res: { json: (arg0: { message: string; }) => void; }) =>
   res.json({ message: "ok" });
 });
 
-app.ws('/chat/:chatid',function(ws,req){
-  console.log("test")
-  chat.onConnection(ws,req)
-  ws.on('open',function(connection:WebSocket){
-    chat.onConnection(ws,req,connection)
-  })
-  ws.on('message',function(connection:WebSocket){
-
-  })
-  ws.on('close',function(connection:WebSocket){
-    chat.onClose(ws,req,connection)
-  })
+app.ws('/chat',function(ws,req){
+  auth.authenticateTokenWs(req,(auth:boolean,payload?:any)=>{
+    if(auth){
+      console.log("LLFALFLAF")
+      chat.onConnection(ws,req,payload)
+      
+      ws.on('message',function(message){
+        chat.onMessage(ws,payload,message.toString())
+      })
+      ws.on('close',function(ws){
+        // chat.onClose(ws,undefined,undefined)
+      })
+      console.log(req)
+    }else{
+    console.log("connection not authenticated")
+    ws.send(JSON.stringify({stage:2,data:"Sie müssen sich erneut anmelden!"}))
+    }
 })
+  
+  
+  
+})
+
 app.post("/login", (req,res) => {
   auth.login(req, res).catch((err: any) => {
     res.status(401).json({ error: "Login fehlgeschlagen",msg:err });
   });
 });
+app.post("/logout",(req,res)=>{
+  res.cookie('accessToken', null, {
+    expires: new Date(new Date().getTime() - 60*60 * 1000),
+    httpOnly: true,
+    sameSite:'none',
+    secure:true
+      })
+      .cookie('refreshToken', null, {
+          expires: new Date(new Date().getTime() - 172800*1000),
+          httpOnly: true,
+          sameSite:'none',
+          secure:true
+      }).status(200).json({error:"Erfolgreich ausgeloggt",status:290})
+})
 app.post("/signup", (req, res) => {
   auth.signup(req, res).catch((err: any) => {
     res.status(401).json({ error: "Signup fehlgeschlagen", errormessage: err });
@@ -157,12 +181,13 @@ app.delete("/auftraggeber/:id", auth.authenticateToken, async (req, res) => {
   var auftraggeberid = req.params.id;
   auftraggeber.deleteAuftraggeber(req, res, auftraggeberid)
 });
-app.get("/pruefungen", auth.authenticateToken, async (req: { query: {}; }, res: any) => {
+app.get("/pruefungen", auth.authenticateToken, async (req: { query: {id:string}; }, res: any) => {
   try {
     if (Object.keys(req.query).length <= 0) {
       pruefungen.getAllInklRauchmelder(req, res);
     } else {
-      pruefungen.getAllWithParams(req, res, req.query);
+      console.log(req.query)
+      pruefungen.getAllWithParams(req, res, req.query.id);
     }
   } catch (err:any) {
     console.error(`Error while getting Pruefungen `, err.message);
