@@ -25,6 +25,20 @@ function getAllInklRauchmelder(request, response) {
         else {
             db_1.default.query(`SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".id as listenid,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id;`, response, getAllMapping);
         }
+        // if(id===1){
+        //     db.prisma.pruefungen.findMany({
+        //         where:{
+        //             userID:id
+        //         },
+        //         include:{
+        //             pruefungensDetails:{
+        //                 include:{
+        //                     rauchmelderhistorie:true
+        //                 }
+        //             }
+        //         }
+        //     })
+        // }
     });
 }
 function getAllMapping(dataparam, response) {
@@ -77,11 +91,32 @@ function getAllWithParam(request, response, key, value) {
         db_1.default.query(query, response);
     });
 }
-function getAllWithParams(request, response, params) {
+function getAllWithParams(request, response, id) {
     return __awaiter(this, void 0, void 0, function* () {
-        const paramsQuery = Object.keys(params).map(key => `pruefungen."` + key.toString() + `" =` + (Number.isNaN(params[key]) ? ` '${params[key]}'` : ` ${params[key]}`)).join(" AND ");
-        const query = 'SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id WHERE ' + paramsQuery;
-        db_1.default.query(query, response, getAllMapping);
+        db_1.default.prisma.pruefungen.findUnique({
+            include: {
+                objekt: true,
+                pruefungenListe: {
+                    include: {
+                        rauchmelderhistorie: true
+                    }
+                },
+            },
+            where: {
+                id: Number.parseInt(id)
+            }
+        }).then(pruefung => {
+            response.status(200).json({
+                status: 200,
+                data: [pruefung]
+            });
+        });
+        // const query = 'SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id WHERE ' +paramsQuery
+        // db.query(
+        //     query,
+        //     response,
+        //     getAllMapping
+        // );
     });
 }
 function createPruefung(request, response) {

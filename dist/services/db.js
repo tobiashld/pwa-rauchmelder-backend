@@ -12,7 +12,35 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // const Pool = require("pg").Pool;
 const pg_1 = require("pg");
 const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const prisma = new client_1.PrismaClient({
+    log: [
+        {
+            emit: 'event',
+            level: 'query',
+        },
+        {
+            emit: 'event',
+            level: 'error',
+        },
+        {
+            emit: 'stdout',
+            level: 'info',
+        },
+        {
+            emit: 'stdout',
+            level: 'warn',
+        },
+    ]
+});
+// prisma.$on('query', (e) => {
+//   console.log('Query: ' + e.query)
+//   console.log('Params: ' + e.params)
+//   console.log('Duration: ' + e.duration + 'ms')
+// })
+// prisma.$on('error', (e) => {
+//   console.log('Message: ' + e.message)
+//   console.log('Target: ' + e.target)
+// })
 const pool = new pg_1.Pool({
     user: "postgres",
     host: "199.247.20.90",

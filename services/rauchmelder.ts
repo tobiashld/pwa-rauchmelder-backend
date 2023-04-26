@@ -82,7 +82,7 @@ async function getAllWithObjectId(request:any,response:any,objektId:number){
       aktuellerRauchmelder:true,
       wohnungen:{
         include:{
-          objekt:true
+          objekte:true
         }
       }
     },
@@ -178,7 +178,7 @@ async function getHistory(request:any,response:any,rauchmelderhistorienid:number
     select:{
       rauchmelder:{
         select:{
-          rauchmelderHistorie:true,
+          rauchmelderhistorie:true,
           wohnungen:{
             select:{
               nachname:true,

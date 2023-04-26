@@ -54,6 +54,7 @@ function validateLogin(rows: string | any[],request: { body: { username: any; pa
         bcrypt.compare(password,rows[0].password).then((isSame: any)=>{
             if(isSame){
                 let newAccessToken = generateAccessToken({username:rows[0].username,id:rows[0].user_id})
+                let newRefreshToken = generateRefreshToken({username:rows[0].username,id:rows[0].user_id})
                 response
                     .status(200)
                     
@@ -63,7 +64,7 @@ function validateLogin(rows: string | any[],request: { body: { username: any; pa
                         sameSite:'none',
                         secure:true
                     })
-                    .cookie('refreshToken', generateRefreshToken({username:rows[0].username,id:rows[0].user_id}), {
+                    .cookie('refreshToken',newRefreshToken , {
                         expires: new Date(new Date().getTime() + 172800*1000),
                         httpOnly: true,
                         sameSite:'none',
@@ -77,32 +78,70 @@ function validateLogin(rows: string | any[],request: { body: { username: any; pa
     }else{
         response.status(401).json({error:"Falscher Benutzername"})
     }
+
     
 }
-
-
-function authenticateToken(req:any, res:any, next: any) {
-  
-  const {accessToken,refreshToken} = req.cookies
+function authenticateTokenWs(req:any,cb:any){
+    const {accessToken,refreshToken} = req.cookies
 
   
 
   jwt.verify(accessToken?accessToken:"", process.env.TOKEN_SECRET , (err: any, user: any) => {
-
     if (err) {
-        if (refreshToken == null) return res.status(200).json({status:469,error:"Beide Token abgelaufen!"})
-        let payload = jwt.decode(refreshToken)
-        let newAccessToken = generateAccessToken({username:payload.username,id:payload.id})
-        res
-            .cookie('accessToken', newAccessToken, {
-				expires: new Date(new Date().getTime() + 60*60*1000),
-				httpOnly: true
-			})
+        cb(false)
+    }else{
+        cb(true,user)
+    }
+  })
+}
+
+const wsAuthMiddleware = (ws:any,req:any,next:any)=>{
+    authenticateTokenWs(req,(auth:boolean,payload?:any)=>{
+        if(auth){
+        req.payload = payload
+        console.log(req)
+        next()
+        }else{
+        console.log("connection not authenticated")
+        ws.send(JSON.stringify({stage:2,data:"Sie müssen sich erneut anmelden!"}))
+        }
+    })
+}
+
+function authenticateToken(req:any, res:any, next: any) {
+  
+  const {accessToken,refreshToken} = req.cookies
+  
+
+  jwt.verify(accessToken?accessToken:"", process.env.TOKEN_SECRET , (err: any, user: any) => {
+    if (err) {
+        if (refreshToken == null){ 
+            return res.cookie('accessToken', null, {
+                        expires: new Date(new Date().getTime() - 60*60 * 1000),
+                        httpOnly: true,
+                        sameSite:'none',
+                        secure:true
+                    })
+                    .cookie('refreshToken', null, {
+                        expires: new Date(new Date().getTime() - 172800*1000),
+                        httpOnly: true,
+                        sameSite:'none',
+                        secure:true
+                    }).status(200).json({status:479,error:"Kein Token vorhanden"})
+        }else{
+            let payload = jwt.decode(refreshToken)
+            let newAccessToken = generateAccessToken({username:payload.username,id:payload.id})
+            res.cookie('accessToken', newAccessToken, {
+                    expires: new Date(new Date().getTime() + 60*60*1000),
+                    httpOnly: true
+                })
+        }
+        
+
     }
 
-    req.user = user
-
     next()
+    
   })
 }
 
@@ -142,9 +181,11 @@ let thisExport = {
     login,
     signup,
     authenticateToken,
+    authenticateTokenWs,
     getOwnUser,
     generateAccessToken,
     handleRefreshToken,
-    changepw
+    changepw,
+    wsAuthMiddleware
 }
 export default thisExport

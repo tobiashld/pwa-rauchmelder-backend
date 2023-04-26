@@ -19,6 +19,20 @@ async function getAllInklRauchmelder(request:any, response: any,){
             getAllMapping
             );
     }
+    // if(id===1){
+    //     db.prisma.pruefungen.findMany({
+    //         where:{
+    //             userID:id
+    //         },
+    //         include:{
+    //             pruefungensDetails:{
+    //                 include:{
+    //                     rauchmelderhistorie:true
+    //                 }
+    //             }
+    //         }
+    //     })
+    // }
   
   
 }
@@ -76,14 +90,33 @@ async function getAllWithParam(request: any, response: any,key: string,value: st
     );
 }
 
-async function getAllWithParams(request: any, response: any,params: { [x: string]: any; }){
-    const paramsQuery = Object.keys(params).map(key=>`pruefungen."`+key.toString()+`" =`+(Number.isNaN(params[key])?` '${params[key]}'`:` ${params[key]}`)).join(" AND ");
-    const query = 'SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id WHERE ' +paramsQuery
-    db.query(
-        query,
-        response,
-        getAllMapping
-    );
+async function getAllWithParams(request: any, response: any,id:string){
+    
+    db.prisma.pruefungen.findUnique({
+        include:{
+            objekt:true,
+            pruefungenListe:{
+                include:{
+                    rauchmelderhistorie:true
+                }
+            },
+        },
+        where:{
+            id:Number.parseInt(id)
+        }
+    }).then(pruefung=>{
+        response.status(200).json({
+            status:200,
+            data:[pruefung]
+        })
+    })
+    
+    // const query = 'SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id WHERE ' +paramsQuery
+    // db.query(
+    //     query,
+    //     response,
+    //     getAllMapping
+    // );
 }
 
 async function createPruefung(request: any, response:any){

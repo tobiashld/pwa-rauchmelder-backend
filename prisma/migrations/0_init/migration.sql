@@ -11,6 +11,32 @@ CREATE TABLE "auftraggeber" (
 );
 
 -- CreateTable
+CREATE TABLE "chats" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+
+    CONSTRAINT "chats_pk" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "chatteilnehmer" (
+    "chatid" UUID NOT NULL,
+    "userid" UUID NOT NULL,
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+
+    CONSTRAINT "chatteilnehmer_pk" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "nachrichten" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "chatid" UUID NOT NULL,
+    "nachricht" VARCHAR NOT NULL,
+    "userid" UUID NOT NULL,
+
+    CONSTRAINT "nachrichten_pk" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "objekte" (
     "id" SERIAL NOT NULL,
     "objekt" VARCHAR(20) NOT NULL,
@@ -26,7 +52,7 @@ CREATE TABLE "objekte" (
 CREATE TABLE "pruefungen" (
     "id" SERIAL NOT NULL,
     "objektID" INTEGER,
-    "userID" INTEGER NOT NULL,
+    "userID" UUID NOT NULL,
     "timestamp" VARCHAR(20) NOT NULL
 );
 
@@ -71,15 +97,23 @@ CREATE TABLE "rauchmelderhistorie" (
 );
 
 -- CreateTable
+CREATE TABLE "user_role" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "admin" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "user_role_pk" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "users" (
-    "user_id" SERIAL NOT NULL,
     "username" VARCHAR(50) NOT NULL,
     "password" VARCHAR(256) NOT NULL,
-    "admin" BOOLEAN,
+    "admin" BOOLEAN NOT NULL DEFAULT false,
     "salt" VARCHAR,
     "email" VARCHAR,
+    "user_id" UUID NOT NULL DEFAULT uuid_generate_v4(),
 
-    CONSTRAINT "users_pkey" PRIMARY KEY ("user_id")
+    CONSTRAINT "users_pk" PRIMARY KEY ("user_id")
 );
 
 -- CreateTable
@@ -112,13 +146,25 @@ CREATE UNIQUE INDEX "rauchmelder_un" ON "rauchmelder"("id");
 CREATE UNIQUE INDEX "wohnungen_un" ON "wohnungen"("id");
 
 -- AddForeignKey
+ALTER TABLE "chatteilnehmer" ADD CONSTRAINT "chatteilnehmer_fk" FOREIGN KEY ("userid") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "chatteilnehmer" ADD CONSTRAINT "chatteilnehmer_fk_1" FOREIGN KEY ("chatid") REFERENCES "chats"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "nachrichten" ADD CONSTRAINT "nachrichten_fk" FOREIGN KEY ("userid") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "nachrichten" ADD CONSTRAINT "nachrichten_fk_1" FOREIGN KEY ("chatid") REFERENCES "chats"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
 ALTER TABLE "objekte" ADD CONSTRAINT "objekte_fk" FOREIGN KEY ("auftraggeberID") REFERENCES "auftraggeber"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "pruefungen" ADD CONSTRAINT "pruefungen_fk" FOREIGN KEY ("objektID") REFERENCES "objekte"("id") ON DELETE SET NULL ON UPDATE NO ACTION;
+ALTER TABLE "pruefungen" ADD CONSTRAINT "pruefungen_fk" FOREIGN KEY ("objektID") REFERENCES "objekte"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "pruefungen" ADD CONSTRAINT "pruefungen_fk_1" FOREIGN KEY ("userID") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE "pruefungen" ADD CONSTRAINT "pruefungen_fk1" FOREIGN KEY ("userID") REFERENCES "users"("user_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "pruefungenListe" ADD CONSTRAINT "pruefungenliste_fk" FOREIGN KEY ("pruefungsID") REFERENCES "pruefungen"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

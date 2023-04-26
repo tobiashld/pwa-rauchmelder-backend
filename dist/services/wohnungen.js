@@ -16,7 +16,16 @@ const db_1 = __importDefault(require("./db"));
 const helper = require('../helper');
 function getAll(request, response) {
     return __awaiter(this, void 0, void 0, function* () {
-        db_1.default.query(`SELECT * FROM public.wohnungen;`, response);
+        db_1.default.prisma.wohnungen.findMany({
+            orderBy: {
+                id: "asc"
+            }
+        }).then(data => {
+            response.status(200).json({
+                status: 200,
+                data: data,
+            });
+        });
     });
 }
 function getAllWithParam(request, response, key, value) {

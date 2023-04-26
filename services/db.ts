@@ -2,7 +2,36 @@
 import { Pool } from "pg";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  log:[
+    {
+      emit: 'event',
+      level: 'query',
+    },
+    {
+      emit: 'event',
+      level: 'error',
+    },
+    {
+      emit: 'stdout',
+      level: 'info',
+    },
+    {
+      emit: 'stdout',
+      level: 'warn',
+    },
+    
+  ]
+})
+// prisma.$on('query', (e) => {
+//   console.log('Query: ' + e.query)
+//   console.log('Params: ' + e.params)
+//   console.log('Duration: ' + e.duration + 'ms')
+// })
+// prisma.$on('error', (e) => {
+//   console.log('Message: ' + e.message)
+//   console.log('Target: ' + e.target)
+// })
 
 const pool = new Pool({
   user: "postgres",
