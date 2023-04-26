@@ -13,10 +13,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = __importDefault(require("./db"));
-const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
-const { jwtDecode } = require('jwt-decode');
+const { jwtDecode } = require("jwt-decode");
 // get config vars
 dotenv.config();
 function login(req, res) {
@@ -36,15 +36,15 @@ function changepw(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { password } = req.body;
         let hashedPassword = yield bcrypt.hash(password, 10);
-        const authHeader = req.headers['authorization'];
-        const token = authHeader && authHeader.split(' ')[1];
+        const authHeader = req.headers["authorization"];
+        const token = authHeader && authHeader.split(" ")[1];
         let payload = parseJwt(token);
         let query = `UPDATE public.users SET password='${hashedPassword}' WHERE user_id=${payload.id};`;
         db_1.default.query(query, res);
     });
 }
 function parseJwt(token) {
-    return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
 }
 function getOwnUser(req, res) {
     const { accessToken, refreshToken } = req.cookies;
@@ -58,25 +58,30 @@ function getOwnUser(req, res) {
 }
 function validateLogin(rows, request, response) {
     const { username, password } = request.body;
-    console.log(username, "username", password, "password");
     if (rows && rows.length > 0) {
         bcrypt.compare(password, rows[0].password).then((isSame) => {
             if (isSame) {
-                let newAccessToken = generateAccessToken({ username: rows[0].username, id: rows[0].user_id });
-                let newRefreshToken = generateRefreshToken({ username: rows[0].username, id: rows[0].user_id });
+                let newAccessToken = generateAccessToken({
+                    username: rows[0].username,
+                    id: rows[0].user_id,
+                });
+                let newRefreshToken = generateRefreshToken({
+                    username: rows[0].username,
+                    id: rows[0].user_id,
+                });
                 response
                     .status(200)
-                    .cookie('accessToken', newAccessToken, {
+                    .cookie("accessToken", newAccessToken, {
                     expires: new Date(new Date().getTime() + 60 * 60 * 1000),
                     httpOnly: true,
-                    sameSite: 'none',
-                    secure: true
+                    sameSite: "none",
+                    secure: true,
                 })
-                    .cookie('refreshToken', newRefreshToken, {
+                    .cookie("refreshToken", newRefreshToken, {
                     expires: new Date(new Date().getTime() + 172800 * 1000),
                     httpOnly: true,
-                    sameSite: 'none',
-                    secure: true
+                    sameSite: "none",
+                    secure: true,
                 })
                     .json({ status: 200, token: newAccessToken });
             }
@@ -104,13 +109,12 @@ const wsAuthMiddleware = (ws, req, next) => {
     authenticateTokenWs(req, (auth, payload) => {
         if (auth) {
             req.payload = payload;
-            console.log(req);
             next();
         }
         else {
-            console.log("connection not authenticated");
             ws.send(JSON.stringify({ stage: 2, data: "Sie müssen sich erneut anmelden!" }));
         }
+        console.log("");
     });
 };
 function authenticateToken(req, res, next) {
@@ -118,25 +122,31 @@ function authenticateToken(req, res, next) {
     jwt.verify(accessToken ? accessToken : "", process.env.TOKEN_SECRET, (err, user) => {
         if (err) {
             if (refreshToken == null) {
-                return res.cookie('accessToken', null, {
+                return res
+                    .cookie("accessToken", null, {
                     expires: new Date(new Date().getTime() - 60 * 60 * 1000),
                     httpOnly: true,
-                    sameSite: 'none',
-                    secure: true
+                    sameSite: "none",
+                    secure: true,
                 })
-                    .cookie('refreshToken', null, {
+                    .cookie("refreshToken", null, {
                     expires: new Date(new Date().getTime() - 172800 * 1000),
                     httpOnly: true,
-                    sameSite: 'none',
-                    secure: true
-                }).status(200).json({ status: 479, error: "Kein Token vorhanden" });
+                    sameSite: "none",
+                    secure: true,
+                })
+                    .status(200)
+                    .json({ status: 479, error: "Kein Token vorhanden" });
             }
             else {
                 let payload = jwt.decode(refreshToken);
-                let newAccessToken = generateAccessToken({ username: payload.username, id: payload.id });
-                res.cookie('accessToken', newAccessToken, {
+                let newAccessToken = generateAccessToken({
+                    username: payload.username,
+                    id: payload.id,
+                });
+                res.cookie("accessToken", newAccessToken, {
                     expires: new Date(new Date().getTime() + 60 * 60 * 1000),
-                    httpOnly: true
+                    httpOnly: true,
                 });
             }
         }
@@ -153,14 +163,17 @@ function handleRefreshToken(req, res) {
                 res.status(200).json({ status: 400, error: "Session abgelaufen" });
             }
             else {
-                let newAccessToken = generateAccessToken({ username: payload.username, id: payload.id });
+                let newAccessToken = generateAccessToken({
+                    username: payload.username,
+                    id: payload.id,
+                });
                 let expiresIn = new Date();
                 expiresIn.setTime(payload.exp);
                 res
                     .status(200)
-                    .cookie('accessToken', newAccessToken, {
+                    .cookie("accessToken", newAccessToken, {
                     expires: new Date(new Date().getTime() + 60 * 60 * 1000),
-                    httpOnly: true
+                    httpOnly: true,
                 })
                     .json({ status: 200, token: newAccessToken });
             }
@@ -182,6 +195,6 @@ let thisExport = {
     generateAccessToken,
     handleRefreshToken,
     changepw,
-    wsAuthMiddleware
+    wsAuthMiddleware,
 };
 exports.default = thisExport;

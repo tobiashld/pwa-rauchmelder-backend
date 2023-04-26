@@ -3,26 +3,25 @@ import { Pool } from "pg";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({
-  log:[
-    {
-      emit: 'event',
-      level: 'query',
-    },
-    {
-      emit: 'event',
-      level: 'error',
-    },
-    {
-      emit: 'stdout',
-      level: 'info',
-    },
-    {
-      emit: 'stdout',
-      level: 'warn',
-    },
-    
-  ]
-})
+	log: [
+		{
+			emit: "event",
+			level: "query",
+		},
+		{
+			emit: "event",
+			level: "error",
+		},
+		{
+			emit: "stdout",
+			level: "info",
+		},
+		{
+			emit: "stdout",
+			level: "warn",
+		},
+	],
+});
 // prisma.$on('query', (e) => {
 //   console.log('Query: ' + e.query)
 //   console.log('Params: ' + e.params)
@@ -34,32 +33,32 @@ const prisma = new PrismaClient({
 // })
 
 const pool = new Pool({
-  user: "postgres",
-  host: "199.247.20.90",
-  database: "rauchmelderverwaltung",
-  password: "HibTHuib13JaWxoza4P",
-  port: 5432,
+	user: "postgres",
+	host: "199.247.20.90",
+	database: "rauchmelderverwaltung",
+	password: "HibTHuib13JaWxoza4P",
+	port: 5432,
 });
 
-async function query(sql:any, response:any, cb?:any) {
-  if (cb) {
-    pool.query(sql, (error:any, results:any) => {
-      if (error) {
-        throw error;
-      }
-      cb(results.rows, response);
-    });
-  } else {
-    pool.query(sql, (error:any, results:any) => {
-      if (error) {
-        throw error;
-      }
-      response.status(200).json({
-        status:200,
-        data: results.rows,
-      });
-    });
-  }
+async function query(sql: any, response: any, cb?: any) {
+	if (cb) {
+		pool.query(sql, (error: any, results: any) => {
+			if (error) {
+				throw error;
+			}
+			cb(results.rows, response);
+		});
+	} else {
+		pool.query(sql, (error: any, results: any) => {
+			if (error) {
+				throw error;
+			}
+			response.status(200).json({
+				status: 200,
+				data: results.rows,
+			});
+		});
+	}
 }
 
 // async function transaction(transactionalSql:any, response:any, cb:any) {
@@ -120,8 +119,8 @@ async function query(sql:any, response:any, cb?:any) {
 // }
 
 export default {
-  query,
-  // transaction,
-  pool,
-  prisma
+	query,
+	// transaction,
+	pool,
+	prisma,
 };

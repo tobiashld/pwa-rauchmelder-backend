@@ -15,22 +15,22 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient({
     log: [
         {
-            emit: 'event',
-            level: 'query',
+            emit: "event",
+            level: "query",
         },
         {
-            emit: 'event',
-            level: 'error',
+            emit: "event",
+            level: "error",
         },
         {
-            emit: 'stdout',
-            level: 'info',
+            emit: "stdout",
+            level: "info",
         },
         {
-            emit: 'stdout',
-            level: 'warn',
+            emit: "stdout",
+            level: "warn",
         },
-    ]
+    ],
 });
 // prisma.$on('query', (e) => {
 //   console.log('Query: ' + e.query)
@@ -130,5 +130,5 @@ exports.default = {
     query,
     // transaction,
     pool,
-    prisma
+    prisma,
 };

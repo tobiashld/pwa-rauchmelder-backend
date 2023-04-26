@@ -13,18 +13,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = __importDefault(require("./db"));
-const helper = require('../helper');
+const helper = require("../helper");
 function getAll(request, response) {
     return __awaiter(this, void 0, void 0, function* () {
-        db_1.default.prisma.rauchmelder.findMany({
+        db_1.default.prisma.rauchmelder
+            .findMany({
             include: {
                 aktuellerRauchmelder: true,
-                wohnungen: true
+                wohnungen: true,
             },
             orderBy: {
-                id: "asc"
-            }
-        }).then(data => {
+                id: "asc",
+            },
+        })
+            .then((data) => {
             response.status(200).json({
                 status: 200,
                 data: data,
@@ -38,17 +40,19 @@ function getAll(request, response) {
     });
 }
 function getActiveWithHistoryId(request, response, historyId) {
-    db_1.default.prisma.rauchmelder.findMany({
+    db_1.default.prisma.rauchmelder
+        .findMany({
         where: {
-            aktuelleHistorienID: historyId
+            aktuelleHistorienID: historyId,
         },
         include: {
-            aktuellerRauchmelder: true
+            aktuellerRauchmelder: true,
         },
         orderBy: {
-            aktuelleHistorienID: "asc"
-        }
-    }).then(data => {
+            aktuelleHistorienID: "asc",
+        },
+    })
+        .then((data) => {
         response.status(200).json({
             status: 200,
             data: data,
@@ -78,26 +82,29 @@ function getAllWithObjectId(request, response, objektId) {
         //   },
         //   orderBy:{id:"asc"}
         // })
-        db_1.default.prisma.rauchmelder.findMany({
+        db_1.default.prisma.rauchmelder
+            .findMany({
             where: {
                 wohnungen: {
                     objektID: {
-                        equals: objektId
-                    }
-                }
+                        equals: objektId,
+                    },
+                },
             },
             include: {
                 aktuellerRauchmelder: true,
                 wohnungen: {
                     include: {
-                        objekte: true
-                    }
-                }
+                        objekte: true,
+                    },
+                },
             },
             orderBy: {
-                aktuelleHistorienID: "asc"
-            }
-        }).then(data => {
+                aktuelleHistorienID: "asc",
+            },
+        })
+            .then((data) => {
+            console.log(data);
             response.status(200).json({
                 status: 200,
                 data: data,
@@ -107,22 +114,30 @@ function getAllWithObjectId(request, response, objektId) {
 }
 function getAllWithParams(request, response, params) {
     return __awaiter(this, void 0, void 0, function* () {
-        const paramsQuery = Object.keys(params).map(key => `rauchmelder."` + key.toString() + `" =` + (isNaN(params[key]) ? ` '${params[key]}'` : ` ${params[key]}`)).join(" AND ");
+        const paramsQuery = Object.keys(params)
+            .map((key) => `rauchmelder."` +
+            key.toString() +
+            `" =` +
+            (isNaN(params[key]) ? ` '${params[key]}'` : ` ${params[key]}`))
+            .join(" AND ");
         const query = `SELECT rauchmelder.id,rauchmelder."wohnungsID",rauchmelder.raum, rauchmelder.seriennr, rauchmelder.produktionsdatum, rauchmelder."letztePruefungsID", public.wohnungen.nachname as mieter,public.objekte.id as objektid,public.objekte.objekt as objektname
   FROM public.rauchmelder
   join public.wohnungen on public.wohnungen.id = public.rauchmelder."wohnungsID" 
-  join public.objekte on public.objekte.id = public.rauchmelder."objektID" WHERE ` + paramsQuery;
+  join public.objekte on public.objekte.id = public.rauchmelder."objektID" WHERE ` +
+            paramsQuery;
         db_1.default.query(query, response);
     });
 }
 function createRauchmelder(request, response) {
     return __awaiter(this, void 0, void 0, function* () {
-        db_1.default.prisma.rauchmelder.create({
+        db_1.default.prisma.rauchmelder
+            .create({
             include: {
-                aktuellerRauchmelder: true
+                aktuellerRauchmelder: true,
             },
-            data: Object.assign({}, request.body)
-        }).then(data => {
+            data: Object.assign({}, request.body),
+        })
+            .then((data) => {
             response.status(200).json({
                 status: 200,
                 data: data,
@@ -138,12 +153,14 @@ function createRauchmelder(request, response) {
 }
 function changeRauchmelder(request, response, rauchmelderid) {
     return __awaiter(this, void 0, void 0, function* () {
-        db_1.default.prisma.rauchmelderhistorie.update({
+        db_1.default.prisma.rauchmelderhistorie
+            .update({
             data: Object.assign({}, request.body),
             where: {
-                id: rauchmelderid
-            }
-        }).then(data => {
+                id: rauchmelderid,
+            },
+        })
+            .then((data) => {
             response.status(200).json({
                 status: 200,
                 data: data,
@@ -159,13 +176,15 @@ function changeRauchmelder(request, response, rauchmelderid) {
 }
 function getWithHistoryId(request, response, rauchmelderhistorienid) {
     return __awaiter(this, void 0, void 0, function* () {
-        db_1.default.prisma.rauchmelderhistorie.findMany({
+        db_1.default.prisma.rauchmelderhistorie
+            .findMany({
             where: {
                 id: {
-                    equals: rauchmelderhistorienid
-                }
-            }
-        }).then(data => {
+                    equals: rauchmelderhistorienid,
+                },
+            },
+        })
+            .then((data) => {
             response.status(200).json({
                 status: 200,
                 data: data,
@@ -175,7 +194,8 @@ function getWithHistoryId(request, response, rauchmelderhistorienid) {
 }
 function getHistory(request, response, rauchmelderhistorienid) {
     return __awaiter(this, void 0, void 0, function* () {
-        db_1.default.prisma.rauchmelderhistorie.findMany({
+        db_1.default.prisma.rauchmelderhistorie
+            .findMany({
             select: {
                 rauchmelder: {
                     select: {
@@ -188,18 +208,19 @@ function getHistory(request, response, rauchmelderhistorienid) {
                                 wohnungslage: true,
                                 haus: true,
                                 objektID: true,
-                            }
-                        }
-                    }
-                }
+                            },
+                        },
+                    },
+                },
             },
             where: {
-                id: rauchmelderhistorienid
+                id: rauchmelderhistorienid,
             },
-        }).then(data => {
+        })
+            .then((data) => {
             response.status(200).json({
                 status: 200,
-                data: data
+                data: data,
             });
         });
     });
@@ -226,9 +247,8 @@ function switchAndCreateRauchmelder(request, response) {
         // }
         let newRauchmelder = request.body.newRauchmelder;
         let altRauchmelderBz = request.body.altRauchmelderBz;
-        console.log("new", newRauchmelder);
-        console.log("old", altRauchmelderBz);
-        db_1.default.prisma.rauchmelderhistorie.create({
+        db_1.default.prisma.rauchmelderhistorie
+            .create({
             data: {
                 produktionsdatum: newRauchmelder.produktionsdatum,
                 raum: altRauchmelderBz.aktuellerRauchmelder.raum,
@@ -239,44 +259,62 @@ function switchAndCreateRauchmelder(request, response) {
                 rauchmelder: {
                     connect: {
                         id: altRauchmelderBz.id,
-                    }
+                    },
                 },
             },
             include: {
-                rauchmelder: true
-            }
-        }).then(value => {
+                rauchmelder: true,
+            },
+        })
+            .then((value) => {
             console.log(altRauchmelderBz.aktuellerRauchmelder.id);
-            db_1.default.prisma.rauchmelderhistorie.update({
+            db_1.default.prisma.rauchmelderhistorie
+                .update({
                 data: {
                     isactive: false,
-                    outOfOrderAt: new Date()
+                    outOfOrderAt: new Date(),
                 },
                 where: {
-                    id: altRauchmelderBz.aktuellerRauchmelder.id
+                    id: altRauchmelderBz.aktuellerRauchmelder.id,
                 },
-            }).then(test => {
-                db_1.default.prisma.rauchmelder.update({
+            })
+                .then((test) => {
+                db_1.default.prisma.rauchmelder
+                    .update({
                     data: {
-                        aktuelleHistorienID: value.id
+                        aktuelleHistorienID: value.id,
                     },
                     where: {
-                        id: altRauchmelderBz.id
-                    }
-                }).then(test => {
+                        id: altRauchmelderBz.id,
+                    },
+                })
+                    .then((test) => {
                     response.status(200).json({
                         status: 200,
                         data: value,
                     });
                 });
             });
-        }).catch(e => {
+        })
+            .catch((e) => {
             throw e;
         });
     });
 }
 function deleteRauchmelder(request, response, rauchmelderid) {
     return __awaiter(this, void 0, void 0, function* () {
+        // db.prisma.rauchmelder.update({
+        // 	data:{
+        // 		rauchmelderhistorie:{
+        // 			disconnect:{
+        // 				id:
+        // 			}
+        // 		}
+        // 	},
+        // 	where:{
+        // 		id:rauchmelderid
+        // 	}
+        // })
         const q = "DELETE FROM public.rauchmelder WHERE id=" + rauchmelderid + ";";
         db_1.default.query(q, response);
     });
@@ -284,19 +322,22 @@ function deleteRauchmelder(request, response, rauchmelderid) {
 function mapObjectToParams(params) {
     return Object.keys(params)
         .filter((value) => {
-        return (value === "id") ? false : true;
+        return value === "id" ? false : true;
     })
-        .map(key => {
-        return (typeof params[key] === "boolean" || typeof params[key] === "number") ? `"${key}"=${params[key]}` : `"${key}"='${params[key]}'`;
-    }).join(",");
+        .map((key) => {
+        return typeof params[key] === "boolean" || typeof params[key] === "number"
+            ? `"${key}"=${params[key]}`
+            : `"${key}"='${params[key]}'`;
+    })
+        .join(",");
 }
 const rauchmelderMapping = (rows, response) => {
     let data = helper.emptyOrRows(rows);
     if (data.length > 0) {
         // data.forEach((rauchmelderhistorie:any)=>{
-        //   let query = `UPDATE 
-        //     public.rauchmelderhistorie SET 
-        //     "wohnungsID"=${rauchmelderhistorie.id} 
+        //   let query = `UPDATE
+        //     public.rauchmelderhistorie SET
+        //     "wohnungsID"=${rauchmelderhistorie.id}
         //     WHERE id=${rauchmelderhistorie.id};
         //   `
         //   console.log(query)
@@ -307,9 +348,9 @@ const rauchmelderMapping = (rows, response) => {
         // data.forEach(rauchmelder=>{
         //   console.log(rauchmelder)
         //   const query = `
-        //       UPDATE 
-        //         public.rauchmelder SET 
-        //         "qrNummer"=${rauchmelder.id} 
+        //       UPDATE
+        //         public.rauchmelder SET
+        //         "qrNummer"=${rauchmelder.id}
         //         WHERE id=${rauchmelder.id};
         //   `
         //   db.pool.query(query).catch(e=>{
@@ -343,5 +384,5 @@ exports.default = {
     changeRauchmelder,
     deleteRauchmelder,
     createRauchmelder,
-    getWithHistoryId
+    getWithHistoryId,
 };

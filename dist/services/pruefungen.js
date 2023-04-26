@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = __importDefault(require("./db"));
 const jwt = require("jsonwebtoken");
-const helper = require('../helper');
+const helper = require("../helper");
 function getAllInklRauchmelder(request, response) {
     return __awaiter(this, void 0, void 0, function* () {
         let { accessToken, refreshToken } = request.cookies;
@@ -51,7 +51,7 @@ function getAllMapping(dataparam, response) {
                 timestamp: a.pruefungszeit,
                 user: {
                     id: a.userID,
-                    username: a.username
+                    username: a.username,
                 },
                 objekt: {
                     id: a.objektID,
@@ -60,9 +60,9 @@ function getAllMapping(dataparam, response) {
                     straße: a.straße,
                     hausnummer: a.hausnummer,
                     plz: a.plz,
-                    ort: a.ort
+                    ort: a.ort,
                 },
-                rauchmelder: []
+                rauchmelder: [],
             };
             r[a.pruefungsID].rauchmelder = r[a.pruefungsID].rauchmelder || [];
             r[a.pruefungsID].rauchmelder.push({
@@ -78,37 +78,60 @@ function getAllMapping(dataparam, response) {
                 batterieGut: a.batterieGut,
                 grund: a.grund,
                 anmerkungen: a.anmerkungen,
-                anmerkungenZwei: a.anmerkungenZwei
+                anmerkungenZwei: a.anmerkungenZwei,
             });
             return r;
         }, Object.create(null));
     }
-    response.status(200).json({ data: Object.keys(data).map(key => data[key]) });
+    response
+        .status(200)
+        .json({ data: Object.keys(data).map((key) => data[key]) });
 }
 function getAllWithParam(request, response, key, value) {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = 'SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id WHERE ' + key + ' = ' + value;
+        const query = 'SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id WHERE ' +
+            key +
+            " = " +
+            value;
         db_1.default.query(query, response);
     });
 }
 function getAllWithParams(request, response, id) {
     return __awaiter(this, void 0, void 0, function* () {
-        db_1.default.prisma.pruefungen.findUnique({
+        db_1.default.prisma.pruefungen
+            .findUnique({
             include: {
-                objekt: true,
+                objekt: {
+                    include: {
+                        auftraggeber: true,
+                    },
+                },
+                user: {
+                    select: {
+                        email: true,
+                        username: true,
+                    },
+                },
                 pruefungenListe: {
                     include: {
-                        rauchmelderhistorie: true
-                    }
+                        rauchmelderhistorie: {
+                            include: {
+                                rauchmelder: {
+                                    include: { wohnungen: true },
+                                },
+                            },
+                        },
+                    },
                 },
             },
             where: {
-                id: Number.parseInt(id)
-            }
-        }).then(pruefung => {
+                id: Number.parseInt(id),
+            },
+        })
+            .then((pruefung) => {
             response.status(200).json({
                 status: 200,
-                data: [pruefung]
+                data: [pruefung],
             });
         });
         // const query = 'SELECT pruefungen.timestamp as pruefungszeit,pruefungen.*,"pruefungenListe".*,users.*,objekte.* FROM pruefungen Join "pruefungenListe" On "pruefungenListe"."pruefungsID" = pruefungen.id Join users On users.user_id = pruefungen."userID" Join objekte On pruefungen."objektID" = objekte.id WHERE ' +paramsQuery
@@ -124,76 +147,129 @@ function createPruefung(request, response) {
         const { accessToken, refreshToken } = request.cookies;
         let pruefung = request.body;
         let user = jwt.decode(refreshToken);
-        let timestamp = new Date();
         let client = yield db_1.default.pool.connect();
         try {
-            yield client.query('BEGIN');
-            const query = `INSERT INTO public.pruefungen("objektID", "userID", "timestamp") VALUES(` + pruefung.objektid + ',' + user.id + `,'`
-                + timestamp.getHours() + ':' + timestamp.getMinutes() + ':' + timestamp.getSeconds() + ' ' + timestamp.getDate() + '.' + timestamp.getMonth() + '.' + timestamp.getFullYear()
-                + `') RETURNING id;`;
-            let res = yield client.query(query);
-            for (let geprRauchmelder of pruefung.rauchmelder) {
-                const queryTwo = `INSERT INTO public."pruefungenListe"("rauchmelderID", "selberRaum","baulichUnveraendert","hindernisseUmgebung","relevanteBeschaedigung","oeffnungenFrei","warnmelderGereinigt","pruefungErfolgreich","batterieGut",timestamp,"pruefungsID",grund,anmerkungen,"anmerkungenZwei")
-                 VALUES (`
-                    + geprRauchmelder.id + `,`
-                    + geprRauchmelder.selberRaum + `,`
-                    + geprRauchmelder.baulichUnveraendert + `,`
-                    + geprRauchmelder.hindernisseUmgebung + `,`
-                    + geprRauchmelder.relevanteBeschaedigung + `,`
-                    + geprRauchmelder.oeffnungenFrei + `,`
-                    + geprRauchmelder.warnmelderGereinigt + `,`
-                    + geprRauchmelder.pruefungErfolgreich + `,`
-                    + geprRauchmelder.batterieGut + `,'`
-                    + geprRauchmelder.timestamp + `',`
-                    + res.rows[0].id + `,`
-                    + geprRauchmelder.grund + `,'`
-                    + geprRauchmelder.anmerkungen + `','`
-                    + geprRauchmelder.anmerkungenZwei + `'
-                 );`;
-                yield client.query(queryTwo);
-            }
-            yield client.query('COMMIT');
-            response.status(200).json({
-                status: 200,
-                data: "Pruefung erfolgreich hinzugefügt"
+            db_1.default.prisma.pruefungen
+                .create({
+                data: {
+                    timestamp: pruefung.timestamp,
+                    user: {
+                        connect: {
+                            user_id: user.id,
+                        },
+                    },
+                    objekt: {
+                        connect: {
+                            id: pruefung.objekt.id,
+                        },
+                    },
+                    pruefungenListe: {
+                        createMany: {
+                            data: pruefung.rauchmelder.map((item) => {
+                                return Object.assign(Object.assign({}, item), { rauchmelderhistorie: undefined });
+                            }),
+                        },
+                        // createMany:{
+                        //     data:[{}],
+                        // }
+                    },
+                },
+            })
+                .then((pruefung) => {
+                response.status(200).json({
+                    status: 200,
+                    data: "Pruefung erfolgreich hinzugefügt",
+                });
             });
+            // await client.query('BEGIN')
+            // const query = `INSERT INTO public.pruefungen("objektID", "userID", "timestamp") VALUES(`+pruefung.objektid+','+user.id+`,'`
+            // +timestamp.getHours()+':'+timestamp.getMinutes()+':'+timestamp.getSeconds()+' '+timestamp.getDate()+'.'+timestamp.getMonth()+'.'+timestamp.getFullYear()
+            // +`') RETURNING id;`;
+            // let res = await client.query(query)
+            // for(let geprRauchmelder of pruefung.rauchmelder){
+            //     const queryTwo = `INSERT INTO public."pruefungenListe"("rauchmelderID", "selberRaum","baulichUnveraendert","hindernisseUmgebung","relevanteBeschaedigung","oeffnungenFrei","warnmelderGereinigt","pruefungErfolgreich","batterieGut",timestamp,"pruefungsID",grund,anmerkungen,"anmerkungenZwei")
+            //      VALUES (`
+            //         +geprRauchmelder.id+`,`
+            //         +geprRauchmelder.selberRaum+`,`
+            //         +geprRauchmelder.baulichUnveraendert+`,`
+            //         +geprRauchmelder.hindernisseUmgebung+`,`
+            //         +geprRauchmelder.relevanteBeschaedigung+`,`
+            //         +geprRauchmelder.oeffnungenFrei+`,`
+            //         +geprRauchmelder.warnmelderGereinigt+`,`
+            //         +geprRauchmelder.pruefungErfolgreich+`,`
+            //         +geprRauchmelder.batterieGut+`,'`
+            //         +geprRauchmelder.timestamp+`',`
+            //         +res.rows[0].id+`,`
+            //         +geprRauchmelder.grund+`,'`
+            //         +geprRauchmelder.anmerkungen+`','`
+            //         +geprRauchmelder.anmerkungenZwei+`'
+            //      );`
+            //     await client.query(queryTwo)
+            // }
+            // await client.query('COMMIT')
+            // response.status(200).json({
+            //     status:200,
+            //     data:"Pruefung erfolgreich hinzugefügt"
+            // })
         }
         catch (e) {
-            yield client.query('ROLLBACK');
             throw e;
-        }
-        finally {
-            client.release();
         }
     });
 }
 function changePruefung(request, response, pruefungsid) {
     return __awaiter(this, void 0, void 0, function* () {
-        let pruefung = request.body;
-        let client = yield db_1.default.pool.connect();
-        try {
-            yield client.query('BEGIN');
-            const q = `UPDATE public.pruefungen SET ` + mapObjectToParams(pruefung) + ` WHERE id=${pruefungsid};`;
-            let res = yield client.query(q);
-            if (pruefung.rauchmelder) {
-                for (let geprRauchmelder of pruefung.rauchmelder) {
-                    const queryTwo = `UPDATE public."pruefungenListe"
-                SET ` + mapObjectToParams(geprRauchmelder) + ` WHERE id=${geprRauchmelder.id} AND "pruefungsID"=${pruefungsid};`;
-                    yield client.query(queryTwo);
-                }
-            }
-            yield client.query('COMMIT');
-            response.status(200).json({
-                data: "Pruefung erfolgreich geändert"
-            });
-        }
-        catch (e) {
-            yield client.query('ROLLBACK');
-            throw e;
-        }
-        finally {
-            client.release();
-        }
+        // let pruefung = request.body;
+        // let preppedPruefung = {
+        // 	objekt:pruefung.objekt?{connect:{id:pruefung.objekt.id}}:undefined,
+        // 	pruefungenListe:pruefung.rauchmelder?{updateMany:{data:pruefung.rauchmelder.map((rauchmelder:any)=>rauchmelder)}}
+        // }
+        // let client = await db.pool.connect();
+        // try {
+        // 	db.prisma.pruefungen.update({
+        // 		data:{
+        // 			objekt:{
+        // 				connect:{
+        // 					id:pruefung
+        // 				}
+        // 			},
+        // 			pruefungenListe:{
+        // 				updateMany:{
+        // 					data:[{
+        // 					}]
+        // 				}
+        // 			}
+        // 		},
+        // 		where:{
+        // 			id:pruefung.id
+        // 		},
+        // 	})
+        // 	await client.query("BEGIN");
+        // 	const q =
+        // 		`UPDATE public.pruefungen SET ` +
+        // 		mapObjectToParams(pruefung) +
+        // 		` WHERE id=${pruefungsid};`;
+        // 	let res = await client.query(q);
+        // 	if (pruefung.rauchmelder) {
+        // 		for (let geprRauchmelder of pruefung.rauchmelder) {
+        // 			const queryTwo =
+        // 				`UPDATE public."pruefungenListe"
+        //             SET ` +
+        // 				mapObjectToParams(geprRauchmelder) +
+        // 				` WHERE id=${geprRauchmelder.id} AND "pruefungsID"=${pruefungsid};`;
+        // 			await client.query(queryTwo);
+        // 		}
+        // 	}
+        // 	await client.query("COMMIT");
+        // 	response.status(200).json({
+        // 		data: "Pruefung erfolgreich geändert",
+        // 	});
+        // } catch (e) {
+        // 	await client.query("ROLLBACK");
+        // 	throw e;
+        // } finally {
+        // 	client.release();
+        // }
     });
 }
 function deletePruefung(request, response, pruefungsid) {
@@ -205,11 +281,14 @@ function deletePruefung(request, response, pruefungsid) {
 function mapObjectToParams(params) {
     return Object.keys(params)
         .filter((value) => {
-        return (value === "id" || value === "rauchmelder") ? false : true;
+        return value === "id" || value === "rauchmelder" ? false : true;
     })
-        .map(key => {
-        return (typeof params[key] === "boolean" || typeof params[key] === "number") ? `"${key}"=${params[key]}` : `"${key}"='${params[key]}'`;
-    }).join(",");
+        .map((key) => {
+        return typeof params[key] === "boolean" || typeof params[key] === "number"
+            ? `"${key}"=${params[key]}`
+            : `"${key}"='${params[key]}'`;
+    })
+        .join(",");
 }
 exports.default = {
     getAllInklRauchmelder,
@@ -217,5 +296,5 @@ exports.default = {
     getAllWithParam,
     createPruefung,
     changePruefung,
-    deletePruefung
+    deletePruefung,
 };

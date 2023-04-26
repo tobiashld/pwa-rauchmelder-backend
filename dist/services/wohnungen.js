@@ -13,14 +13,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = __importDefault(require("./db"));
-const helper = require('../helper');
+const helper = require("../helper");
 function getAll(request, response) {
     return __awaiter(this, void 0, void 0, function* () {
-        db_1.default.prisma.wohnungen.findMany({
+        db_1.default.prisma.wohnungen
+            .findMany({
             orderBy: {
-                id: "asc"
-            }
-        }).then(data => {
+                id: "asc",
+            },
+            include: {
+                objekte: true,
+            },
+        })
+            .then((data) => {
             response.status(200).json({
                 status: 200,
                 data: data,
@@ -30,14 +35,19 @@ function getAll(request, response) {
 }
 function getAllWithParam(request, response, key, value) {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = 'SELECT * FROM public.wohnungen WHERE ' + key + ' = ' + value;
+        const query = "SELECT * FROM public.wohnungen WHERE " + key + " = " + value;
         db_1.default.query(query, response);
     });
 }
 function getAllWithParams(request, response, params) {
     return __awaiter(this, void 0, void 0, function* () {
-        const paramsQuery = Object.keys(params).map(key => `wohnungen."` + key.toString() + `" =` + (Number.isNaN(params[key]) ? ` '${params[key]}'` : ` ${params[key]}`)).join(" AND ");
-        const query = 'SELECT * FROM public.wohnungen WHERE ' + paramsQuery;
+        const paramsQuery = Object.keys(params)
+            .map((key) => `wohnungen."` +
+            key.toString() +
+            `" =` +
+            (Number.isNaN(params[key]) ? ` '${params[key]}'` : ` ${params[key]}`))
+            .join(" AND ");
+        const query = "SELECT * FROM public.wohnungen WHERE " + paramsQuery;
         db_1.default.query(query, response);
     });
 }
@@ -51,7 +61,9 @@ function createWohnung(request, response) {
 function changeWohnung(request, response, wohnungsid) {
     return __awaiter(this, void 0, void 0, function* () {
         let wohnung = request.body;
-        const q = `UPDATE public.wohnungen SET ` + mapObjectToParams(wohnung) + ` WHERE id=${wohnungsid};`;
+        const q = `UPDATE public.wohnungen SET ` +
+            mapObjectToParams(wohnung) +
+            ` WHERE id=${wohnungsid};`;
         db_1.default.query(q, response);
     });
 }
@@ -64,11 +76,15 @@ function deleteWohnung(request, response, wohnungsid) {
 function mapObjectToParams(params) {
     return Object.keys(params)
         .filter((value) => {
-        return (value === "id") ? false : true;
+        let forbidden = ["id", "objekt"];
+        return forbidden.includes(value) ? false : true;
     })
-        .map(key => {
-        return (typeof params[key] === "boolean" || typeof params[key] === "number") ? `"${key}"=${params[key]}` : `"${key}"='${params[key]}'`;
-    }).join(",");
+        .map((key) => {
+        return typeof params[key] === "boolean" || typeof params[key] === "number"
+            ? `"${key}"=${params[key]}`
+            : `"${key}"='${params[key]}'`;
+    })
+        .join(",");
 }
 exports.default = {
     getAll,
@@ -76,5 +92,5 @@ exports.default = {
     getAllWithParam,
     createWohnung,
     changeWohnung,
-    deleteWohnung
+    deleteWohnung,
 };

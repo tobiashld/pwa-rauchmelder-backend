@@ -28,13 +28,17 @@ function getAll(request, response) {
 function getAllWithParams(request, response, params) {
     return __awaiter(this, void 0, void 0, function* () {
         const paramsQuery = Object.keys(params)
-            .map((key) => `objekte."` +
-            key.toString() +
-            `" =` +
-            (isNaN(params[key]) ? ` '${params[key]}'` : ` ${params[key]}`))
+            .map((key) => key.match(RegExp("[A-Z]"))
+            ? `objekte.` +
+                key.toString() +
+                ` =` +
+                (isNaN(params[key]) ? ` '${params[key]}'` : ` ${params[key]}`)
+            : `objekte."` +
+                key.toString() +
+                `" =` +
+                (isNaN(params[key]) ? ` '${params[key]}'` : ` ${params[key]}`))
             .join(" AND ");
         const query = "SELECT * FROM public.objekte WHERE " + paramsQuery;
-        console.log(query);
         db_1.default.query(query, response);
     });
 }
