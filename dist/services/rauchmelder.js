@@ -104,7 +104,6 @@ function getAllWithObjectId(request, response, objektId) {
             },
         })
             .then((data) => {
-            console.log(data);
             response.status(200).json({
                 status: 200,
                 data: data,
@@ -267,7 +266,6 @@ function switchAndCreateRauchmelder(request, response) {
             },
         })
             .then((value) => {
-            console.log(altRauchmelderBz.aktuellerRauchmelder.id);
             db_1.default.prisma.rauchmelderhistorie
                 .update({
                 data: {

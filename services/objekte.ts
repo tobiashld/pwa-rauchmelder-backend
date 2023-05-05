@@ -8,7 +8,19 @@ const alleFunctions = {
 	changeObjekt,
 };
 async function getAll(request: any, response: any) {
-	db.query(`SELECT * FROM objekte`, response);
+	db.prisma.objekte
+		.findMany({
+			include: {
+				auftraggeber: true,
+			},
+		})
+		.then((data: any) => {
+			response.status(200).json({
+				status: 200,
+				data: data,
+			});
+		});
+	// db.query(`SELECT * FROM objekte`, response);
 }
 
 async function getAllWithParams(

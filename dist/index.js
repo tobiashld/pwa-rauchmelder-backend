@@ -31,7 +31,7 @@ const { app, getWss, applyTo } = (0, express_ws_1.default)(express(), undefined,
     // verifyClient:(info,cb)=>{
     //   auth.authenticateTokenWs(info.req,cb)
     // }
-    }
+    },
 });
 // var expressWs = require('express-ws')(app);
 app.use(express.json());
@@ -59,15 +59,15 @@ app.use(cookieParser());
 app.get("/", (req, res) => {
     res.json({ message: "ok" });
 });
-app.ws('/chat', function (ws, req) {
+app.ws("/chat", function (ws, req) {
     auth_1.default.authenticateTokenWs(req, (auth, payload) => {
         if (auth) {
             console.log("LLFALFLAF");
             chat_1.default.onConnection(ws, req, payload);
-            ws.on('message', function (message) {
+            ws.on("message", function (message) {
                 chat_1.default.onMessage(ws, payload, message.toString());
             });
-            ws.on('close', function (ws) {
+            ws.on("close", function (ws) {
                 // chat.onClose(ws,undefined,undefined)
             });
             console.log(req);
@@ -84,18 +84,21 @@ app.post("/login", (req, res) => {
     });
 });
 app.post("/logout", (req, res) => {
-    res.cookie('accessToken', null, {
+    res
+        .cookie("accessToken", null, {
         expires: new Date(new Date().getTime() - 60 * 60 * 1000),
         httpOnly: true,
-        sameSite: 'none',
-        secure: true
+        sameSite: "none",
+        secure: true,
     })
-        .cookie('refreshToken', null, {
+        .cookie("refreshToken", null, {
         expires: new Date(new Date().getTime() - 172800 * 1000),
         httpOnly: true,
-        sameSite: 'none',
-        secure: true
-    }).status(200).json({ error: "Erfolgreich ausgeloggt", status: 290 });
+        sameSite: "none",
+        secure: true,
+    })
+        .status(200)
+        .json({ error: "Erfolgreich ausgeloggt", status: 290 });
 });
 app.post("/signup", (req, res) => {
     auth_1.default.signup(req, res).catch((err) => {
@@ -111,9 +114,7 @@ app.post("/changepw", auth_1.default.authenticateToken, (req, res) => {
 });
 app.get("/statistics/pruefungen", auth_1.default.authenticateToken, (req, res) => {
     statistics_1.default.getPruefungenStatistics(req, res).catch((err) => {
-        res
-            .status(401)
-            .json({
+        res.status(401).json({
             error: "Statistische Daten auswerten fehlgeschlagen",
             errormessage: err,
         });
@@ -189,7 +190,6 @@ app.get("/pruefungen", auth_1.default.authenticateToken, (req, res) => __awaiter
             pruefungen_1.default.getAllInklRauchmelder(req, res);
         }
         else {
-            console.log(req.query);
             pruefungen_1.default.getAllWithParams(req, res, req.query.id);
         }
     }
@@ -235,26 +235,41 @@ app.post("/rauchmelder/switch/create", (req, res) => __awaiter(void 0, void 0, v
 }));
 app.get("/rauchmelder/objekt/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(req.params);
-    rauchmelder_1.default.getAllWithObjectId(req, res, Number.parseInt(req.params.id)).catch((err) => {
+    rauchmelder_1.default
+        .getAllWithObjectId(req, res, Number.parseInt(req.params.id))
+        .catch((err) => {
         res
             .status(200)
-            .json({ status: 406, error: "Verändern des Rauchmelders fehlgeschlagen" });
+            .json({
+            status: 406,
+            error: "Verändern des Rauchmelders fehlgeschlagen",
+        });
     });
 }));
 app.get("/rauchmelder/variant/:variante", auth_1.default.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var rauchmelderhistorienid = req.params.variante;
-    rauchmelder_1.default.getWithHistoryId(req, res, rauchmelderhistorienid).catch((err) => {
+    rauchmelder_1.default
+        .getWithHistoryId(req, res, rauchmelderhistorienid)
+        .catch((err) => {
         res
             .status(200)
-            .json({ status: 406, error: "Verändern des Rauchmelders fehlgeschlagen" });
+            .json({
+            status: 406,
+            error: "Verändern des Rauchmelders fehlgeschlagen",
+        });
     });
 }));
 app.get("/rauchmelder/history/:variante", auth_1.default.authenticateToken, (req, res) => {
     var rauchmelderhistorienid = req.params.variante;
-    rauchmelder_1.default.getHistory(req, res, Number.parseInt(rauchmelderhistorienid)).catch((err) => {
+    rauchmelder_1.default
+        .getHistory(req, res, Number.parseInt(rauchmelderhistorienid))
+        .catch((err) => {
         res
             .status(200)
-            .json({ status: 406, error: "Verändern des Rauchmelders fehlgeschlagen" });
+            .json({
+            status: 406,
+            error: "Verändern des Rauchmelders fehlgeschlagen",
+        });
     });
 });
 app.put("/rauchmelder/:id", auth_1.default.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -268,7 +283,9 @@ app.put("/rauchmelder/:id", auth_1.default.authenticateToken, (req, res) => __aw
 app.delete("/rauchmelder/:id", auth_1.default.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var rauchmelderid = req.params.id;
     rauchmelder_1.default.deleteRauchmelder(req, res, rauchmelderid).catch((err) => {
-        res.status(200).json({ error: "Löschen des Rauchmelders fehlgeschlagen" });
+        res
+            .status(200)
+            .json({ error: "Löschen des Rauchmelders fehlgeschlagen" });
     });
 }));
 app.post("/rauchmelder", auth_1.default.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {

@@ -179,7 +179,6 @@ const wsAuthMiddleware = (ws: any, req: any, next: any) => {
 				JSON.stringify({ stage: 2, data: "Sie müssen sich erneut anmelden!" })
 			);
 		}
-		console.log("");
 	});
 };
 

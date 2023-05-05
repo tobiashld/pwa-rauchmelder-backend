@@ -279,7 +279,6 @@ async function switchAndCreateRauchmelder(request: any, response: any) {
 			},
 		})
 		.then((value: any) => {
-			console.log(altRauchmelderBz.aktuellerRauchmelder.id);
 			db.prisma.rauchmelderhistorie
 				.update({
 					data: {

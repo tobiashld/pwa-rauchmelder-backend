@@ -22,7 +22,19 @@ const alleFunctions = {
 };
 function getAll(request, response) {
     return __awaiter(this, void 0, void 0, function* () {
-        db_1.default.query(`SELECT * FROM objekte`, response);
+        db_1.default.prisma.objekte
+            .findMany({
+            include: {
+                auftraggeber: true,
+            },
+        })
+            .then((data) => {
+            response.status(200).json({
+                status: 200,
+                data: data,
+            });
+        });
+        // db.query(`SELECT * FROM objekte`, response);
     });
 }
 function getAllWithParams(request, response, params) {

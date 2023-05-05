@@ -114,7 +114,6 @@ const wsAuthMiddleware = (ws, req, next) => {
         else {
             ws.send(JSON.stringify({ stage: 2, data: "Sie müssen sich erneut anmelden!" }));
         }
-        console.log("");
     });
 };
 function authenticateToken(req, res, next) {
